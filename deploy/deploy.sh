@@ -9,11 +9,11 @@
 #
 # What it does:
 #   1. rsync the project to /opt/99-steps-and-7-falls on the server
-#   2. rebuild the Spring Boot artifact on the server
-#   3. restart the systemd service
+#   2. run tests and build the Spring Boot artifact locally
+#   3. install the systemd service definition and restart the service
 #
 # Options:
-#   -h HOST   public IP or DNS name of the instance   (required)
+#   -h HOST   public IP, DNS name, or USER@HOST       (required)
 #   -i KEY    path to your .pem private key           (optional if ssh-agent has it)
 #   -u USER   SSH login user (default: ubuntu; use 'ec2-user' for Amazon Linux)
 #   -d DIR    remote directory (default: /opt/99-steps-and-7-falls)
@@ -60,7 +60,10 @@ if [ -n "$SSH_KEY" ]; then
     SSH_OPTS+=(-i "$SSH_KEY")
 fi
 
-TARGET="${REMOTE_USER}@${REMOTE_HOST}"
+case "$REMOTE_HOST" in
+    *@*) TARGET="$REMOTE_HOST" ;;
+    *) TARGET="${REMOTE_USER}@${REMOTE_HOST}" ;;
+esac
 
 echo "==> Running tests before deploying"
 ./mvnw test
@@ -71,10 +74,12 @@ echo "==> Building the Spring Boot jar"
 echo "==> Copying files to ${TARGET}:${REMOTE_DIR}"
 # --delete removes files on the server that you deleted locally, so the server
 # is an exact mirror of your source. The excludes keep local-only things out:
-# data/ belongs to the server, while Maven rebuilds the app artifact there.
+# data/ belongs to the server, keys/ contains local credentials, and Maven
+# builds the app artifact locally before syncing it.
 rsync -az --delete \
     --exclude '.git' \
     --exclude 'data' \
+    --exclude 'keys/' \
     --exclude '.DS_Store' \
     --exclude '*.log' \
     -e "ssh ${SSH_OPTS[*]}" \
@@ -86,18 +91,26 @@ echo "==> Building release artifact and restarting the service"
 ssh "${SSH_OPTS[@]}" "$TARGET" "
     set -e
     cd '${REMOTE_DIR}'
+    sudo install -m 644 deploy/game-app.service /etc/systemd/system/${SERVICE}.service
+    sudo systemctl daemon-reload
     sudo systemctl restart ${SERVICE}
     sleep 2
     sudo systemctl is-active --quiet ${SERVICE} && echo 'service is running'
 "
 
 echo "==> Checking the health endpoint"
-if curl -fsS --max-time 10 "http://${REMOTE_HOST}/actuator/health"; then
-    printf '\n\n==> Deployed. Open http://%s in your browser.\n' "$REMOTE_HOST"
-else
-    printf '\n'
-    echo "WARNING: the health check did not answer." >&2
-    echo "Check the EC2 security group (port 80 inbound) and the logs:" >&2
-    echo "  ssh ${SSH_OPTS[*]} $TARGET 'journalctl -u ${SERVICE} -n 50'" >&2
-    exit 1
-fi
+HEALTH_URL="http://${REMOTE_HOST##*@}/actuator/health"
+for attempt in {1..30}; do
+    if curl -fsS --max-time 5 "$HEALTH_URL" 2>/dev/null; then
+        printf '\n\n==> Deployed. Open http://%s in your browser.\n' "$REMOTE_HOST"
+        exit 0
+    fi
+    [ "$attempt" -eq 30 ] || sleep 2
+done
+
+printf '\n'
+curl -fsS --max-time 10 "$HEALTH_URL" || true
+echo "WARNING: the health endpoint did not answer after 60 seconds." >&2
+echo "Check the EC2 security group (port 80 inbound) and the logs:" >&2
+echo "  ssh ${SSH_OPTS[*]} $TARGET 'journalctl -u ${SERVICE} -n 50'" >&2
+exit 1
