@@ -1,0 +1,49 @@
+# A systemd unit file. systemd is the program that starts services on boot and
+# restarts them when they crash, so your app keeps running after you close your
+# SSH session.
+#
+# setup-ec2.sh copies this to /etc/systemd/system/99-steps-and-7-falls.service.
+# Useful commands once it is installed:
+#   sudo systemctl status 99-steps-and-7-falls     # is it running?
+#   sudo systemctl restart 99-steps-and-7-falls    # restart after a deploy
+#   journalctl -u 99-steps-and-7-falls -f          # follow the logs
+[Unit]
+Description=99 Steps & 7 Falls
+After=network.target
+
+[Service]
+Type=simple
+
+# Run as an unprivileged user that only exists to run this app. If someone finds
+# a hole in the app, they get this account and nothing more.
+User=game_app
+Group=game_app
+
+# The app reads both of these (see server/server.js and server/store.js).
+
+WorkingDirectory=/opt/99-steps-and-7-falls
+ExecStart=/usr/bin/java -jar /opt/99-steps-and-7-falls/spring-boot-0.0.1-SNAPSHOT.jar
+
+Environment=PORT=3000
+Environment=JAVA_OPTS="-Xms256m -Xmx512m"
+
+[Install]
+WantedBy=multi-user.target
+
+# If the app crashes, start it again after 5 seconds.
+Restart=always
+RestartSec=5
+
+# Send console.log output to the system journal.
+StandardOutput=journal
+StandardError=journal
+
+# Some cheap hardening. The app can only write to its own data directory.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/99-steps-and-7-falls/data
+
+[Install]
+WantedBy=multi-user.target
