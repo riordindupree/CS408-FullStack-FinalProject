@@ -25,7 +25,6 @@ set -euo pipefail
 APP_NAME="99-steps-and-7-falls"
 APP_DIR="/opt/99-steps-and-7-falls"
 APP_USER="game_app"
-NODE_MAJOR="22"
 
 # The directory this script lives in, so it can find the files next to it no
 # matter where it was called from.
@@ -110,18 +109,13 @@ chown -R "$APP_USER:$APP_USER" "$APP_DIR/data"
 chmod 750 "$APP_DIR"
 chmod 770 "$APP_DIR/data"
 
-# Start with an empty game state if this is a brand new server.
-if [ ! -f "$APP_DIR/data/game_state.json" ]; then
-    echo '[]' > "$APP_DIR/data/game_state.json"
-    chown "$APP_USER:$APP_USER" "$APP_DIR/data/game_state.json"
-fi
-
 # --- systemd ----------------------------------------------------------------
 
 say "Installing the $APP_NAME systemd service"
 
 install -m 644 "$SCRIPT_DIR/game-app.service" "/etc/systemd/system/${APP_NAME}.service"
 systemctl daemon-reload
+
 systemctl enable "$APP_NAME"
 
 # --- nginx ------------------------------------------------------------------
