@@ -5,12 +5,17 @@
     <title>Canvas Error</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body class="bg-light">
+<body class="bg-light d-flex flex-column min-vh-100">
+
+    <div th:replace="~{fragments/header :: siteHeader}"></div>
+
     <div class="container py-5">
         <div class="alert alert-danger">
             <h4 class="alert-heading">Canvas Error</h4>
             <p th:text="${errorMessage}">Something went wrong.</p>
         </div>
     </div>
+
+    <div th:replace="~{fragments/footer :: siteFooter}"></div>
 </body>
 </html>

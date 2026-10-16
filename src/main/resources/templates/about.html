@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- about.html : defines the file layout for about of application -->
+
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>99 Steps & 7 Falls</title>
+</head>
+<body class="d-flex flex-column min-vh-100">
+    <div th:replace="~{fragments/header :: siteHeader}"></div>
+
+    <main class="container bg-light">
+        <h1>About</h1>
+        <span text-center text-success>
+            99 Steps & 7 Falls is a simple 2D Dungeon Crawler where the user can explore and collect items and monsters.
+            In the game, the player will be able to explore through a dungeon entirely made up of text and graphs. They will have to 
+            explore through this dungeon with only a limited number of steps, and have to make it to the end and back before they run 
+            out of steps. While traveling through the dungeon, the player is allowed to have 4 items on hand. When the player leaves the 
+            dungeon, they can keep whatever items they were carrying, and take them into the next run.
+        </span>
+    </main>
+
+    <div th:replace="~{fragments/footer :: siteFooter}"></div>
+</body>
+
+</html>
