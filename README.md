@@ -23,3 +23,9 @@ In the termianl, type:
 This will have the server start running the application locally on port 3000.
 
 To view the webpage, enter into the browser, and in the searchbar, type `http://localhost:3000/` to see the application.
+
+## Project Description
+
+The project creates a basic layout for my application.  All the pages have been placed in as a simple default layout, styled using Bootstraps. Currently, all of the pages lack functionality.
+
+To view the project as it currently is, got to the following webpage: `http://44.251.58.31/`
