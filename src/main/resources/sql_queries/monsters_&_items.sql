@@ -1,4 +1,20 @@
 -- Seed data from the monsters and items listed in guide.html.
+BEGIN;
+
+DELETE FROM GAINED_ITEM
+WHERE item_id IN (
+    SELECT item_id FROM ITEM WHERE item_name IN ('Berry', 'Key 1', 'Key 2')
+);
+DELETE FROM GAINED_MONSTER
+WHERE monster_id IN (
+    SELECT monster_id
+    FROM MONSTER
+    WHERE monster_name IN ('Molynx', 'Iktorb', 'Lappup', 'Quapok', 'Fleastrike', 'Korokorobi')
+);
+DELETE FROM ITEM WHERE item_name IN ('Berry', 'Key 1', 'Key 2');
+DELETE FROM MONSTER
+WHERE monster_name IN ('Molynx', 'Iktorb', 'Lappup', 'Quapok', 'Fleastrike', 'Korokorobi');
+
 INSERT INTO MONSTER (monster_name, monster_desc, monster_icon, monster_score) VALUES
     ('Molynx', 'A somewhat rodent-like creature. They are very opportunistic hunters.', 'ᘛ⁐̤ᕐᐷ', 200),
     ('Iktorb', 'Spider-like creatures used to capture certain creatures with its sticky webs.', 'ᕐ⚗︎', 400),
@@ -13,3 +29,5 @@ INSERT INTO ITEM (item_name, item_desc, item_icon, item_score) VALUES
     ('Berry', 'Liked by different types of enemies. Can be used to befriend monsters.', '☊', 100),
     ('Key 1', 'Used to unlock door 1.', '♀', 500),
     ('Key 2', 'Used to unlock door 2.', '♂', 500);
+
+COMMIT;

@@ -9,7 +9,10 @@
 #   ./start.sh --port 4000  listen somewhere other than port 3000
 #   ./start.sh --help       show this message
 #
-# Works on Linux and macOS.
+# For first-time local setup, run ./setup-local-db.sh first.
+# Requires a local PostgreSQL database named game_db and psql on PATH.
+# Database credentials and SQL setup are handled by setup-local-db.sh.
+# Works on Linux, macOS, and Git Bash on Windows.
 
 set -euo pipefail
 
@@ -101,6 +104,14 @@ fi
 [ -f mvnw ] || die "the Maven Wrapper (mvnw) is missing from the project root."
 [ -f .mvn/wrapper/maven-wrapper.properties ] \
     || die "the Maven Wrapper configuration is missing from .mvn/wrapper/maven-wrapper.properties."
+
+[ -f .env.local ] \
+    || die "local database settings are missing. Run ./setup-local-db.sh first."
+
+set -a
+# setup-local-db.sh creates this ignored file with the application connection settings.
+. ./.env.local
+set +a
 
 PORT="${PORT_OVERRIDE:-$DEFAULT_PORT}"
 say "Building the application and resolving Maven dependencies"

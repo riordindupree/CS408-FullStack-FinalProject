@@ -2,7 +2,17 @@
 -- File must be run after schema.sql on a fresh test database.
 BEGIN;
 
--- create default player values
+UPDATE PLAYER SET high_score_run_id = NULL
+WHERE player_id IN (111111, 222222, 333333, 444444, 555555);
+
+DELETE FROM GAINED_ITEM
+WHERE run_id IN (SELECT run_id FROM RUN WHERE player_id IN (111111, 222222, 333333, 444444, 555555));
+DELETE FROM GAINED_MONSTER
+WHERE run_id IN (SELECT run_id FROM RUN WHERE player_id IN (111111, 222222, 333333, 444444, 555555));
+DELETE FROM RUN WHERE player_id IN (111111, 222222, 333333, 444444, 555555);
+DELETE FROM PLAYER WHERE player_id IN (111111, 222222, 333333, 444444, 555555);
+
+-- Create default player values.
 INSERT INTO PLAYER (player_id, password_hash, number_of_runs) VALUES
     (111111, 'PASSWORD', 3),
     (222222, 'PASSWORD', 2),
