@@ -25,15 +25,6 @@ public class PageLayoutController {
   }
 
   /**
-   * Load map page from map.html
-   * @return the contents of index
-   */
-  @GetMapping("/map")
-  public String map() {
-    return "map";
-  }
-
-  /**
    * Load delete account page from delete.html
    * @return the contents of index
    */

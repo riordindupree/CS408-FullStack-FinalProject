@@ -32,7 +32,7 @@ INSERT INTO RUN (player_id, steps, score, korokorobi) VALUES
 
 UPDATE PLAYER p
 SET high_score_run_id = (
-    SELECT r.run_id+
+    SELECT r.run_id
     FROM RUN r
     WHERE r.player_id = p.player_id
     ORDER BY r.score DESC, r.run_id
