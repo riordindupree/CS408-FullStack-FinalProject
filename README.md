@@ -48,3 +48,7 @@ After that is complete, start the application using:
 This will have the server start running the application locally on port 3000.
 
 To view the webpage, enter into the browser, and in the searchbar, type `http://localhost:3000/` to see the application.
+
+## EC2 Instance
+
+The contents of this github page are currently loaded onto an EC2 server. The server can be accessed at `http://44.251.58.31/`. The application is deployed to the server using the contents inside the `deploy` directory.

@@ -112,8 +112,8 @@ set -a
 set +a
 
 printf 'Configured database %s and role %s.\n' "$DB_NAME" "$DB_USER"
-printf 'Applying any SQL files that have not completed yet (schema.sql first).\n'
-bash ./deploy/init-database.sh
+printf 'Verifying the schema and refreshing local seed data (schema.sql first).\n'
+bash ./deploy/init-database.sh --refresh-seeds
 
 printf 'Local connection settings saved to .env.local (ignored by Git).\n'
 printf 'Database setup is complete. Run ./start.sh to launch the app.\n'

@@ -1,9 +1,33 @@
 #!/usr/bin/env bash
 #
 # Initialize the application database from src/main/resources/sql_queries.
-# The schema runs once; seed SQL refreshes its own fixture/catalog rows on each run.
+# The schema and seed SQL run once by default. Pass --refresh-seeds to reload seed data.
 
 set -euo pipefail
+
+REFRESH_SEEDS=false
+case "${1:-}" in
+    "")
+        ;;
+    --refresh-seeds)
+        REFRESH_SEEDS=true
+        shift
+        ;;
+    --help|-h)
+        printf 'Usage: %s [--refresh-seeds]\n' "$0"
+        printf 'By default, apply schema and seed files only once. --refresh-seeds reapplies seed files.\n'
+        exit 0
+        ;;
+    *)
+        printf 'ERROR: unknown argument: %s\n' "$1" >&2
+        printf 'Usage: %s [--refresh-seeds]\n' "$0" >&2
+        exit 1
+        ;;
+esac
+[ "$#" -eq 0 ] || {
+    printf 'ERROR: unexpected extra argument: %s\n' "$1" >&2
+    exit 1
+}
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 APP_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
@@ -31,6 +55,9 @@ psql --no-psqlrc --set=ON_ERROR_STOP=1 \
     --command "CREATE TABLE IF NOT EXISTS public.${FILE_MARKER} (file_name TEXT PRIMARY KEY, applied_at TIMESTAMPTZ NOT NULL DEFAULT now())"
 
 printf 'Initializing PostgreSQL database from %s\n' "$SQL_DIR"
+
+previously_initialized="$(psql --no-psqlrc --tuples-only --no-align --set=ON_ERROR_STOP=1 \
+    --command "SELECT to_regclass('public.${INIT_MARKER}') IS NOT NULL")"
 
 mark_file_applied() {
     psql --no-psqlrc --set=ON_ERROR_STOP=1 --set=file_name="$1" <<'SQL'
@@ -69,7 +96,27 @@ for sql_file in "${SQL_DIR}"/*.sql; do
     [ -f "$sql_file" ] || continue
     [ "$sql_file" = "${SQL_DIR}/schema.sql" ] && continue
     file_name="$(basename "$sql_file")"
-    printf 'Refreshing seed data from %s\n' "$file_name"
+    file_applied="$(psql --no-psqlrc --tuples-only --no-align --set=ON_ERROR_STOP=1 \
+        --set=file_name="$file_name" <<'SQL'
+SELECT EXISTS (
+    SELECT 1 FROM public.deploy_sql_files WHERE file_name = :'file_name'
+);
+SQL
+)"
+    if [ "$REFRESH_SEEDS" != "true" ] && [ "$file_applied" = "t" ]; then
+        printf '%s already applied; skipping.\n' "$file_name"
+        continue
+    fi
+    if [ "$REFRESH_SEEDS" != "true" ] && [ "$previously_initialized" = "t" ]; then
+        printf 'Database was already initialized; recording %s as applied without replaying it.\n' "$file_name"
+        mark_file_applied "$file_name"
+        continue
+    fi
+    if [ "$REFRESH_SEEDS" = "true" ]; then
+        printf 'Refreshing seed data from %s\n' "$file_name"
+    else
+        printf 'Applying %s\n' "$file_name"
+    fi
     psql --no-psqlrc --set=ON_ERROR_STOP=1 --file="$sql_file"
     mark_file_applied "$file_name"
 done
@@ -77,4 +124,8 @@ done
 psql --no-psqlrc --set=ON_ERROR_STOP=1 \
     --command "CREATE TABLE IF NOT EXISTS public.${INIT_MARKER} (initialized_at TIMESTAMPTZ NOT NULL DEFAULT now())"
 
-printf 'Database schema verified and seed data refreshed successfully.\n'
+if [ "$REFRESH_SEEDS" = "true" ]; then
+    printf 'Database schema verified and seed data refreshed successfully.\n'
+else
+    printf 'Database schema verified and unapplied SQL files processed successfully.\n'
+fi
