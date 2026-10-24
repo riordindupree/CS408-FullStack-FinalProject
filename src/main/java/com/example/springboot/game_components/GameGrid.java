@@ -83,24 +83,96 @@ public class GameGrid {
         /** 
          * Floor 3 
         */
+        // side path
         gameGrid[2][0][0] = new Room('n', 'u', 'p', 'p'); // starting room: dead end
         gameGrid[2][0][1] = new Room(new Action ('i', 1, itemRepository), new Action ('p'), new Action ('n'), new Action ('o', 6));
 
         gameGrid[2][1][0] = new Room(new Action ('p'), new Action ('n'), new Action ('n'), new Action ('i', 4, itemRepository));
 
+        // main path
+        gameGrid[2][0][3] = new Room(new Action ('n'), new Action ('i', 3, itemRepository), new Action ('p'), new Action ('p'));
+        gameGrid[2][0][4] = new Room(new Action ('i', 5, itemRepository), new Action ('p'), new Action ('n'), new Action ('p'));
+        
+        gameGrid[2][1][2] = new Room(new Action ('o', 1), new Action ('n'), new Action ('n'), new Action ('p'));
+        gameGrid[2][1][3] = new Room('n', 'p', 'p', 'p');
+        gameGrid[2][1][4] = new Room(new Action ('p'), new Action ('p'), new Action ('n'), new Action ('i', 2, itemRepository));
+
+        gameGrid[2][2][2] = new Room('n', 'p', 'p', 'p');
+        gameGrid[2][2][3] = new Room('p', 'p', 'n', 'n');
+
+        gameGrid[2][3][2] = new Room('p', 'd', 'u', '1'); // starting room & next floor
+
+        gameGrid[2][1][4] = new Room(new Action ('p'), new Action ('n'), new Action ('o', 5), new Action ('i', 5, itemRepository));
+        
         /** 
          * Floor 4 
         */
+        gameGrid[3][0][2] = new Room('d', 'n', 'n', 'p'); // next floor
 
+        gameGrid[3][1][2] = new Room('2', 'n', 'n', 'p');
+
+        gameGrid[3][2][2] = new Room('p', 'n', 'p', 'p');
+        gameGrid[3][2][3] = new Room(new Action ('o', 5), new Action ('p'), new Action ('i', 3, itemRepository), new Action ('i', 1, itemRepository));
+        
+        gameGrid[3][3][2] = new Room('1', 'u', 'n', 'p'); // starting room
+
+        gameGrid[3][4][1] = new Room('n', 'e', 'p', 'n'); // Late Game Exit
+        gameGrid[3][4][2] = new Room('p', '2', 'n', 'n');
 
         /** 
          * Floor 5 
         */
+        // room set entrance
+        gameGrid[4][0][1] = new Room('n', 'd', 'p', 'n');
+        gameGrid[4][0][2] = new Room('u', 'p', 'p', 'p'); // starting room
+        gameGrid[4][0][3] = new Room('n', 'p', 'd', 'n');
 
+        gameGrid[4][1][2] = new Room('p', 'n', 'd', 'n');
+
+        // room set Lappup
+        gameGrid[4][2][1] = new Room(new Action ('o', 3), new Action ('i', 5, itemRepository), new Action ('i', 5, itemRepository), new Action ('d'));
+
+        // room set Quapoks
+        gameGrid[4][3][2] = new Room('n', 'n', 'd', 'p');
+
+        gameGrid[4][4][2] = new Room('p', 'u', '2', 'n'); // enter
+        gameGrid[4][4][3] = new Room(new Action ('o', 4), new Action ('p'), new Action ('o', 4), new Action ('o', 4)); // quapok room
+
+        // room set long
+        gameGrid[4][1][4] = new Room('d', 'n', 'n', 'p'); // enter
+        gameGrid[4][2][4] = new Room('p', 'n', 'n', 'p');
+        gameGrid[4][3][4] = new Room('p', 'n', 'n', 'p');
+        gameGrid[4][4][4] = new Room('p', 'n', 'd', 'n'); // exit
+        
         /**
          * Floor 6 
         */
+        // room set molynx
+        gameGrid[5][0][1] = new Room('n', 'd', 'n', 'p'); // enter
 
+        gameGrid[5][1][0] = new Room(new Action ('n'), new Action ('o', 1), new Action ('p'), new Action ('n'));
+        gameGrid[5][1][1] = new Room('p', 'p', 'n', 'p');
+
+        gameGrid[5][2][1] = new Room('p', 'n', 'n', 'u'); // exit
+
+        // room set final
+        gameGrid[5][0][2] = new Room(new Action ('i', 4, itemRepository), new Action('n'), new Action ('p'), new Action ('i', 1, itemRepository));
+        gameGrid[5][0][3] = new Room('n', 'p', 'u', 'p');
+
+        gameGrid[5][1][2] = new Room('n', 'n', 'u', 'p');
+        gameGrid[5][1][3] = new Room(new Action ('p'), new Action ('o', 2), new Action ('p'), new Action ('n'));
+        gameGrid[5][1][4] = new Room('u', 'p', 'n', 'p');
+
+        gameGrid[5][2][2] = new Room('p', 'n', 'p', '1');
+        gameGrid[5][2][3] = new Room('n', 'p', 'p', 'n');
+        gameGrid[5][2][4] = new Room('p', 'p', 'n', 'n');
+
+        gameGrid[5][3][2] = new Room('p', 'n', 'u', 'd');
+
+        // room set detour
+        gameGrid[5][4][2] = new Room('n', 'u', 'p', 'n');
+        gameGrid[5][4][2] = new Room('n', 'p', 'p', 'n');
+        gameGrid[5][4][2] = new Room('n', 'p', 'u', 'n');
 
         /**
          * Floor 7 
@@ -109,7 +181,7 @@ public class GameGrid {
          * 1) The starting room has stairs for ascending, and a locked 1 door.
          * 2) The second room only has a passage way back to the previous room, and the final boss.
         */
-        gameGrid[6][3][2] = new Room('p', 'n', 'n', 'u');
+        gameGrid[6][3][2] = new Room('p', 'n', 'n', 'u'); // starting room
         gameGrid[6][2][2] = new Room(new Action('o', 7), new Action ('n'), new Action('n'), new Action('p'));
     }
 
