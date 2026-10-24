@@ -9,7 +9,8 @@
 #   journalctl -u 99-steps-and-7-falls -f          # follow the logs
 [Unit]
 Description=99 Steps & 7 Falls
-After=network.target
+After=network.target postgresql.service
+Requires=postgresql.service
 
 [Service]
 Type=simple
@@ -20,10 +21,12 @@ User=game_app
 Group=game_app
 
 WorkingDirectory=/opt/99-steps-and-7-falls
+ExecStartPre=/bin/bash /opt/99-steps-and-7-falls/deploy/init-database.sh
 ExecStart=/usr/bin/java -jar /opt/99-steps-and-7-falls/target/spring-boot-0.0.1-SNAPSHOT.jar
 
 Environment=PORT=3000
 Environment=JAVA_OPTS="-Xms256m -Xmx512m"
+EnvironmentFile=/etc/99-steps-and-7-falls/database.env
 
 # If the app crashes, start it again after 5 seconds.
 Restart=always

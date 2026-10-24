@@ -11,8 +11,10 @@
 #   sudo bash deploy/setup-ec2.sh
 #
 # It installs Java, Maven, and nginx, creates the service account and directories,
-# and registers the app with systemd so it starts on boot. After this, use
-# deploy/deploy.sh from your laptop to push code.
+# and registers the app with systemd so it starts on boot. On the app's first
+# start, its service loads SQL files from src/main/resources/sql_queries, with
+# schema.sql applied first. After setup, use deploy/deploy.sh from your laptop
+# to push code.
 #
 # Works on Amazon Linux 2023 and on Ubuntu 22.04/24.04.
 
@@ -25,6 +27,11 @@ set -euo pipefail
 APP_NAME="99-steps-and-7-falls"
 APP_DIR="/opt/99-steps-and-7-falls"
 APP_USER="game_app"
+DB_NAME="game_db"
+DB_USER="game_app"
+DB_CONFIG_DIR="/etc/${APP_NAME}"
+DB_PASSWORD_FILE="${DB_CONFIG_DIR}/db-password"
+DB_ENV_FILE="${DB_CONFIG_DIR}/database.env"
 
 # The directory this script lives in, so it can find the files next to it no
 # matter where it was called from.
@@ -73,17 +80,66 @@ say "Detected ${PRETTY_NAME:-$ID} (package manager: $PKG)"
 
 # --- packages ---------------------------------------------------------------
 
-say "Installing Java 17, Maven, and nginx"
+say "Installing Java 17, Maven, nginx, and PostgreSQL"
 
 if [ "$PKG" = "dnf" ]; then
     dnf -y update
-    dnf -y install java-17-openjdk maven nginx rsync
+    dnf -y install java-17-openjdk maven nginx rsync openssl postgresql15 postgresql15-server
 else
     apt-get update -y
-    apt-get install -y ca-certificates curl gnupg rsync openjdk-17-jdk maven nginx
+    apt-get install -y ca-certificates curl gnupg rsync openssl openjdk-17-jdk maven nginx postgresql
 fi
 
-say "Java $(java -version 2>&1 | head -n 1), Maven $(mvn -version 2>&1 | head -n 1), npm $(npm --version)"
+say "Java $(java -version 2>&1 | head -n 1), Maven $(mvn -version 2>&1 | head -n 1)"
+
+# --- PostgreSQL -------------------------------------------------------------
+
+say "Initializing and starting PostgreSQL"
+
+# Amazon Linux packages need an explicit initial database setup. Ubuntu's
+# PostgreSQL packages create their default cluster during installation.
+if [ "$PKG" = "dnf" ] && [ ! -s /var/lib/pgsql/data/PG_VERSION ]; then
+    postgresql-setup --initdb
+fi
+
+systemctl enable --now postgresql
+
+say "Creating the local application database and credentials"
+
+install -d -o root -g root -m 700 "$DB_CONFIG_DIR"
+
+# Keep a generated password across reruns so setup remains idempotent.
+if [ ! -s "$DB_PASSWORD_FILE" ]; then
+    openssl rand -hex 32 > "$DB_PASSWORD_FILE"
+    chmod 600 "$DB_PASSWORD_FILE"
+fi
+DB_PASSWORD="$(cat "$DB_PASSWORD_FILE")"
+[ -n "$DB_PASSWORD" ] || die "database password file is empty: $DB_PASSWORD_FILE"
+
+# The password is generated as hex so it can be safely quoted in this SQL.
+runuser -u postgres -- psql --set=ON_ERROR_STOP=1 <<SQL
+DO \$\$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = '${DB_USER}') THEN
+        CREATE ROLE ${DB_USER} LOGIN;
+    END IF;
+END
+\$\$;
+ALTER ROLE ${DB_USER} WITH LOGIN PASSWORD '${DB_PASSWORD}';
+SQL
+
+if ! runuser -u postgres -- psql --tuples-only --no-align \
+    --command "SELECT 1 FROM pg_database WHERE datname = '${DB_NAME}'" | grep -q 1; then
+    runuser -u postgres -- createdb --owner="$DB_USER" "$DB_NAME"
+fi
+
+umask 077
+cat > "$DB_ENV_FILE" <<EOF
+SPRING_DATASOURCE_URL=jdbc:postgresql://127.0.0.1:5432/${DB_NAME}
+SPRING_DATASOURCE_USERNAME=${DB_USER}
+SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+EOF
+chmod 600 "$DB_ENV_FILE"
 
 # --- service account and directories ----------------------------------------
 
@@ -156,6 +212,13 @@ fi
 cat <<EOF
 
 ==> Server setup is complete.
+
+PostgreSQL is running locally on this EC2 instance. The app database is
+'$DB_NAME'; its generated credentials are stored in the root-only file
+'$DB_ENV_FILE' and loaded by systemd. PostgreSQL is not exposed publicly.
+The first application start initializes it from sql_queries/schema.sql followed
+by the remaining SQL files. The initialization marker prevents replay on
+subsequent restarts.
 
 The app is registered but not running yet, because no code has been deployed.
 From your laptop, in the project folder, run:
