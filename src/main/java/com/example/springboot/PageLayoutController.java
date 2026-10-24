@@ -34,15 +34,6 @@ public class PageLayoutController {
   }
 
   /**
-   * Load leaderboard page from leaderboard.html
-   * @return the contents of index
-   */
-  @GetMapping("/leaderboard")
-  public String lb() {
-    return "leaderboard";
-  }
-
-  /**
    * Load delete account page from delete.html
    * @return the contents of index
    */
