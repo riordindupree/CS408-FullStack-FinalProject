@@ -97,12 +97,12 @@ public class GameGrid {
         gameGrid[2][1][3] = new Room('n', 'p', 'p', 'p');
         gameGrid[2][1][4] = new Room(new Action ('p'), new Action ('p'), new Action ('n'), new Action ('i', 2, itemRepository));
 
-        gameGrid[2][2][2] = new Room('n', 'p', 'p', 'p');
+        gameGrid[2][2][2] = new Room('p', 'n', 'p', 'p');
         gameGrid[2][2][3] = new Room('p', 'p', 'n', 'n');
 
         gameGrid[2][3][2] = new Room('p', 'd', 'u', '1'); // starting room & next floor
 
-        gameGrid[2][1][4] = new Room(new Action ('p'), new Action ('n'), new Action ('o', 5), new Action ('i', 5, itemRepository));
+        gameGrid[2][4][2] = new Room(new Action ('p'), new Action ('n'), new Action ('o', 5), new Action ('i', 5, itemRepository));
         
         /** 
          * Floor 4 
@@ -135,7 +135,7 @@ public class GameGrid {
         // room set Quapoks
         gameGrid[4][3][2] = new Room('n', 'n', 'd', 'p');
 
-        gameGrid[4][4][2] = new Room('p', 'u', '2', 'n'); // enter
+        gameGrid[4][4][2] = new Room('p', 'd', '2', 'n'); // enter
         gameGrid[4][4][3] = new Room(new Action ('o', 4), new Action ('p'), new Action ('o', 4), new Action ('o', 4)); // quapok room
 
         // room set long
@@ -148,7 +148,7 @@ public class GameGrid {
          * Floor 6 
         */
         // room set molynx
-        gameGrid[5][0][1] = new Room('n', 'd', 'n', 'p'); // enter
+        gameGrid[5][0][1] = new Room('n', 'u', 'n', 'p'); // enter
 
         gameGrid[5][1][0] = new Room(new Action ('n'), new Action ('o', 1), new Action ('p'), new Action ('n'));
         gameGrid[5][1][1] = new Room('p', 'p', 'n', 'p');
@@ -159,11 +159,11 @@ public class GameGrid {
         gameGrid[5][0][2] = new Room(new Action ('i', 4, itemRepository), new Action('n'), new Action ('p'), new Action ('i', 1, itemRepository));
         gameGrid[5][0][3] = new Room('n', 'p', 'u', 'p');
 
-        gameGrid[5][1][2] = new Room('n', 'n', 'u', 'p');
+        gameGrid[5][1][2] = new Room('n', 'n', 'u', '1');
         gameGrid[5][1][3] = new Room(new Action ('p'), new Action ('o', 2), new Action ('p'), new Action ('n'));
         gameGrid[5][1][4] = new Room('u', 'p', 'n', 'p');
 
-        gameGrid[5][2][2] = new Room('p', 'n', 'p', '1');
+        gameGrid[5][2][2] = new Room('p', 'n', 'p', '2');
         gameGrid[5][2][3] = new Room('n', 'p', 'p', 'n');
         gameGrid[5][2][4] = new Room('p', 'p', 'n', 'n');
 
@@ -357,9 +357,9 @@ class Action {
         // passage way
         if (action == 'p'){ return "Ⅱ"; }
         // stairs down
-        if (action == 'd'){ return "[[["; }
+        if (action == 'd'){ return "↙▟"; }
         // stairs up
-        if (action == 'u'){ return "]]]"; }
+        if (action == 'u'){ return "↗▟"; }
         // enemy
         if (action == 'o'){ return "Ω"; }
         // locked door 1
