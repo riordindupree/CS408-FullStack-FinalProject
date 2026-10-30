@@ -24,6 +24,9 @@ public class GameGrid {
     // declare gameGrid struct
     private Room[][][] gameGrid = new Room[7][5][5];
     private final ItemRepository itemRepository;
+
+    // Game variables
+    int steps = 0;
     
     // constructor
     public GameGrid(ItemRepository itemRepository){
@@ -34,6 +37,49 @@ public class GameGrid {
 
         // create preset floor layout
         defaultFloors();
+    }
+
+    /**
+     * Function lets the user select an option (1 to 4).
+     * The options will connect to different room functions
+     * depending on the contents of the current room. 
+     */
+    public void roomSelection(int option){
+        // find the character for option of current room.
+        char action = gameGrid[current_floor][current_x][current_y].getRoom(option - 1);
+        // if action is n, do nothing.
+        if (action == 'n'){ return; }
+        // increment steps
+        steps ++;
+        // convert character into game output.
+        if (action == 'p'){
+            // move
+            move(option);
+        } else if (action == 'd'){
+            // descend
+            decend();
+        } else if (action == 'u'){
+            // ascend
+            ascend();
+        } else if (action == 'e'){
+            // call exit functions
+            exit(true);
+        } else if (action == 'i'){
+            // call item function
+            item();
+        } else if (action == '1'){
+            // call lock function with argument 1
+            lock(1);
+        } else if (action == '2'){
+            // call lock function with arguement 2
+            lock(2);
+        } else if (action == 'o'){
+            // call enemy functions and change game state to battle screen
+        }
+        // check if maximum number of steps has been reached
+        if (steps == 99){
+            exit(false);
+        }
     }
 
     /**
@@ -185,45 +231,83 @@ public class GameGrid {
         gameGrid[6][2][2] = new Room(new Action('o', 7), new Action ('n'), new Action('n'), new Action('p'));
     }
 
+    /** 
+     * Function called in the roomSelection method.
+     * Calls other move functions based on i.
+     */ 
+    private void move(int i){
+        if (i == 1){
+            move_up();
+        } else if (i == 2){
+            move_left();
+        } else if (i == 3){
+            move_right();
+        } else if (i == 4){
+            move_down();
+        }
+    }
 
     // move up
-    public void move_up(){
+    private void move_up(){
         if(4 >= current_y){ return; }
         // increment current y
         current_y++;
     }
 
     // move down
-    public void move_down(){
+    private void move_down(){
         if(0 <= current_y){ return; }
         // increment current y
         current_y--;
     }
 
     // move right
-    public void move_right(){
+    private void move_right(){
         if(4 >= current_x){ return; }
         // increment current y
         current_x++;
     }
 
     // move left
-    public void move_left(){
+    private void move_left(){
         if(0 <= current_x){ return; }
         // increment current y
         current_x--;
     }
 
     // ascend
-    public void ascend(){
+    private void ascend(){
         // decrement current_floor
         current_floor--;
     }
 
     // descend
-    public void decend(){
+    private void decend(){
         // increment current_floor
         current_floor++;
+    }
+
+    // locked door function
+    private void lock(int i){
+        // check if player has key for i
+            // if they do, set action to 'p'
+    }
+
+    // exit function. True if success, False if ran out of steps.
+    private void exit(boolean success){
+        // TODO
+        return;
+    }
+
+    // item function
+    private void item(){
+        // TODO
+        // set action to 'n'
+    }
+
+    // returns number of steps
+    public int getSteps(){
+        return steps;
     }
 
     // get data from current x and y value
@@ -373,6 +457,11 @@ class Action {
     // return char representing action type
     public char getAction(){
         return action;
+    }
+
+    // sets a given action type. (Used by lock and item)
+    public void setAction(char newAction){
+        action = newAction;
     }
 
     // return id of action
