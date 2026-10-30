@@ -2,6 +2,10 @@ package com.example.springboot.game_components;
 
 import java.util.Objects;
 
+import org.springframework.context.annotation.ScopedProxyMode;
+import org.springframework.stereotype.Component;
+import org.springframework.web.context.annotation.SessionScope;
+
 /**
  * Stores data for game grid. For gameGrid, the first value represents the floor,
  * The second value represent the row, and the third value represents the column.
@@ -15,6 +19,8 @@ import java.util.Objects;
  * 
  * GameGrid
  */
+@Component
+@SessionScope(proxyMode = ScopedProxyMode.TARGET_CLASS)
 public class GameGrid {
     // x and y coordinate values
     private int current_x;
