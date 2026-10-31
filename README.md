@@ -53,4 +53,8 @@ To view the webpage, enter into the browser, and in the searchbar, type `http://
 
 The project creates a basic layout for my application.  All the pages have been placed in as a simple default layout, styled using Bootstraps. Currently, all of the pages lack functionality.
 
+The project plan can be found at `https://docs.google.com/document/d/1fUvD8a-E7638cirqe-HS2MEyEfPe-9G5X58lvsiYLhM/edit?tab=t.0`
+
 To view the project after it is after the last update to the EC2 server, go to the following webpage: `http://44.251.58.31/`
+
+The version found on EC2 is currently running off of commit `https://github.com/riordindupree/CS408-FullStack-FinalProject/commit/bb074224e7c20397cb438b57d507ec4d16fad594`
