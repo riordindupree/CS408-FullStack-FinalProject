@@ -83,7 +83,7 @@ public class GameGrid {
             // call enemy functions and change game state to battle screen
         }
         // check if maximum number of steps has been reached
-        if (steps == 99){
+        if (steps >= 99){
             exit(false);
         }
     }
@@ -255,30 +255,26 @@ public class GameGrid {
 
     // move up
     private void move_up(){
-        if(4 >= current_y){ return; }
-        // increment current y
-        current_y++;
+        if (current_x <= 0){ return; }
+        current_x--;
     }
 
     // move down
     private void move_down(){
-        if(0 <= current_y){ return; }
-        // increment current y
-        current_y--;
+        if (current_x >= 4){ return; }
+        current_x++;
     }
 
     // move right
     private void move_right(){
-        if(4 >= current_x){ return; }
-        // increment current y
-        current_x++;
+        if (current_y >= 4){ return; }
+        current_y++;
     }
 
     // move left
     private void move_left(){
-        if(0 <= current_x){ return; }
-        // increment current y
-        current_x--;
+        if (current_y <= 0){ return; }
+        current_y--;
     }
 
     // ascend
@@ -313,13 +309,24 @@ public class GameGrid {
 
     // returns number of steps
     public int getSteps(){
-        return steps;
+        return 99 - steps;
     }
 
-    // get data from current x and y value
-    public int getCurrentData(int option){
-        // retunrs content of current.
-        return gameGrid[current_floor][current_x][current_y].getRoom(option);
+    // Returns the current floor using the one-based numbering shown on the map.
+    public int getCurrentFloor(){
+        return current_floor + 1;
+    }
+
+    // get data from option at current position
+    public String getCurrentData(int option){
+        // returns content of current.
+        return gameGrid[current_floor][current_x][current_y].getImage(option);
+    }
+
+    // get the message associated with a specific action at a given option
+    public String getGameMessage(int option){
+        // returns content of current.
+        return gameGrid[current_floor][current_x][current_y].getMessage(option);
     }
 
     // get data from a given x and y value
@@ -401,6 +408,11 @@ class Room {
     public String getImage(int i){
         return options[i].getIcon();
     }
+
+    // returns the message for a given Action
+    public String getMessage(int i){
+        return options[i].getMessage();
+    }
 }
 
 /**
@@ -456,6 +468,33 @@ class Action {
         if (action == '1'){ return "⌧"; }
         // locked door 2
         if (action == '2'){ return "⮹"; }
+        // unimplemented character
+        return "𐙚";
+    }
+
+    // returns the icon of a given Action
+    public String getMessage(){
+        // if item, get item image from database
+        if (action == 'i'){
+            if (itemRepository == null) {
+                throw new IllegalStateException("Item actions require an ItemRepository.");
+            }
+            return itemRepository.findIconById(act_id);
+        }
+        // wall
+        if (action == 'n'){return "X";}
+        // exit
+        if (action == 'e'){ return "EXIT"; }
+        // passage way
+        if (action == 'p'){ return "MOVE"; }
+        // stairs down
+        if (action == 'd'){ return "DESCEND"; }
+        // stairs up
+        if (action == 'u'){ return "ASCEND"; }
+        // enemy
+        if (action == 'o'){ return "FIGHT"; }
+        // locked doors
+        if (action == '1' || action == '2'){ return "UNLOCK"; }
         // unimplemented character
         return "𐙚";
     }

@@ -32,9 +32,11 @@ public class MapController {
    */
   @GetMapping("/map")
   public String map(
-      @RequestParam(defaultValue = "1") int floor,
+      @RequestParam(required = false) Integer floor,
       Model model) {
-    int selectedFloor = Math.max(1, Math.min(floor, FLOOR_COUNT));
+    int selectedFloor = floor == null
+        ? gameGrid.getCurrentFloor()
+        : Math.max(1, Math.min(floor, FLOOR_COUNT));
     List<List<String>> mapRows = new ArrayList<>();
 
     for (int row = 0; row < GRID_SIZE; row++) {

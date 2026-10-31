@@ -45,6 +45,14 @@
 
     <div th:replace="~{fragments/footer :: siteFooter}"></div>
 
+    <script>
+        window.addEventListener("storage", function (event) {
+            if (event.key === "game-moved") {
+                window.location.reload();
+            }
+        });
+    </script>
+
 </body>
 
 </html>

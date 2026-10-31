@@ -16,15 +16,6 @@ public class PageLayoutController {
   }
 
   /**
-   * Load game page from start.html
-   * @return the contents of index
-   */
-  @GetMapping("/start")
-  public String game_board() {
-    return "start";
-  }
-
-  /**
    * Load delete account page from delete.html
    * @return the contents of index
    */

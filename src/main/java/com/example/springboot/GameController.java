@@ -2,12 +2,8 @@ package com.example.springboot;
 
 import com.example.springboot.game_components.GameGrid;
 
-import ch.qos.logback.core.model.Model;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -33,16 +29,24 @@ public class GameController {
     @PostMapping("/start/room-selection")
     public String roomSelection(@RequestParam int option) {
         gameGrid.roomSelection(option);
-        return "redirect:/start";
+        return "redirect:/start?moved=true";
     }
 
     /**
      * Gets current floor icons and displays them in the proper quadrant.
      */
-    /*@GetMapping("/map")
+    @GetMapping("/start")
     public String map(
-        @RequestParam(defaultValue = "1") int floor,
         Model model) {
-        
-    }*/
+        model.addAttribute("top", gameGrid.getCurrentData(0));
+        model.addAttribute("left", gameGrid.getCurrentData(1));
+        model.addAttribute("right", gameGrid.getCurrentData(2));
+        model.addAttribute("bottom", gameGrid.getCurrentData(3));
+        model.addAttribute("option_1", gameGrid.getGameMessage(0));
+        model.addAttribute("option_2", gameGrid.getGameMessage(1));
+        model.addAttribute("option_3", gameGrid.getGameMessage(2));
+        model.addAttribute("option_4", gameGrid.getGameMessage(3));
+        model.addAttribute("steps", gameGrid.getSteps());
+        return "start";
+    }
 }
