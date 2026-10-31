@@ -45,6 +45,8 @@ public class GameGrid {
         defaultFloors();
     }
 
+    /* Game Specific Functions */
+
     /**
      * Function lets the user select an option (1 to 4).
      * The options will connect to different room functions
@@ -52,7 +54,7 @@ public class GameGrid {
      */
     public void roomSelection(int option){
         // find the character for option of current room.
-        char action = gameGrid[current_floor][current_x][current_y].getRoom(option - 1);
+        char action = gameGrid[current_floor][current_x][current_y].getRoom(option);
         // if action is n, do nothing.
         if (action == 'n'){ return; }
         // increment steps
@@ -72,15 +74,16 @@ public class GameGrid {
             exit(true);
         } else if (action == 'i'){
             // call item function
-            item();
+            item(option);
         } else if (action == '1'){
             // call lock function with argument 1
-            lock(1);
+            unlock(option, 1);
         } else if (action == '2'){
             // call lock function with arguement 2
-            lock(2);
+            unlock(option, 2);
         } else if (action == 'o'){
             // call enemy functions and change game state to battle screen
+            fight(option);
         }
         // check if maximum number of steps has been reached
         if (steps >= 99){
@@ -237,18 +240,20 @@ public class GameGrid {
         gameGrid[6][2][2] = new Room(new Action('o', 7), new Action ('n'), new Action('n'), new Action('p'));
     }
 
+    /* --- Private Action Functions --- */
+
     /** 
      * Function called in the roomSelection method.
      * Calls other move functions based on i.
      */ 
     private void move(int i){
-        if (i == 1){
+        if (i == 0){
             move_up();
-        } else if (i == 2){
+        } else if (i == 1){
             move_left();
-        } else if (i == 3){
+        } else if (i == 2){
             move_right();
-        } else if (i == 4){
+        } else if (i == 3){
             move_down();
         }
     }
@@ -290,9 +295,11 @@ public class GameGrid {
     }
 
     // locked door function
-    private void lock(int i){
+    private void unlock(int i, int l){
+        //TODO
         // check if player has key for i
             // if they do, set action to 'p'
+        gameGrid[current_floor][current_x][current_y].rewriteAction(i, 'p');
     }
 
     // exit function. True if success, False if ran out of steps.
@@ -302,10 +309,20 @@ public class GameGrid {
     }
 
     // item function
-    private void item(){
+    private void item(int i){
         // TODO
         // set action to 'n'
+        gameGrid[current_floor][current_x][current_y].rewriteAction(i, 'n');
     }
+
+    // enemy function
+    private void enemy(int i){
+        // TODO
+        // set action to 'n' if player obtained beast
+        gameGrid[current_floor][current_x][current_y].rewriteAction(i, 'n');
+    }
+
+    /* --- Get and To String Functions --- */
 
     // returns number of steps
     public int getSteps(){
@@ -397,6 +414,11 @@ class Room {
         options[1] = act2;
         options[2] = act3;
         options[3] = act4;
+    }
+
+    // rewrites the char value of a given action. (Used by lock, item, and enemy)
+    public void rewriteAction(int i, char newAction){
+        options[i].setAction(newAction);
     }
 
     // gets contents of room at i
@@ -504,7 +526,7 @@ class Action {
         return action;
     }
 
-    // sets a given action type. (Used by lock and item)
+    // sets a given action type. (Used by lock, item, and enemy)
     public void setAction(char newAction){
         action = newAction;
     }
