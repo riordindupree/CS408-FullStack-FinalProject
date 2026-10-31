@@ -316,7 +316,7 @@ public class GameGrid {
     }
 
     // enemy function
-    private void enemy(int i){
+    private void fight(int i){
         // TODO
         // set action to 'n' if player obtained beast
         gameGrid[current_floor][current_x][current_y].rewriteAction(i, 'n');
