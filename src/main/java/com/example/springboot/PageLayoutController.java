@@ -25,15 +25,6 @@ public class PageLayoutController {
   }
 
   /**
-   * Load guide page from guide.html
-   * @return the contents of index
-   */
-  @GetMapping("/guide")
-  public String guide() {
-    return "guide";
-  }
-
-  /**
    * Load about page from about.html
    * @return the contents of index
    */

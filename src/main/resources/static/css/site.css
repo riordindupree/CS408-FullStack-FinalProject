@@ -11,3 +11,7 @@
     --bs-table-hover-bg: #d2cec5;
     background-color: #d2cec5;
 }
+
+.multiline {
+    white-space: pre-line;
+}
