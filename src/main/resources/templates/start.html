@@ -20,24 +20,36 @@
             </div>
             <div class="col-auto">
                 <div class="btn-group" role="group" aria-label="Items">
-                    <table class="table table-bordered border-dark table-info text-center align-middle mb-0" aria-label="Items">
+                    <table class="table table-bordered border-dark map-info text-center align-middle mb-0" aria-label="Items">
                         <tbody>
                             <tr>
                                 <td class="rounded-0">
-                                    Item 1
-                                    <button class="btn btn-sm btn-outline-dark rounded-0" type="button">toss</button>
+                                    <span th:text="${item_1}"></span>
+                                    <form action="/start/room-selection" method="post">
+                                        <input type="hidden" name="option" value="0">
+                                        <button class="btn btn-sm btn-outline-dark rounded-0" type="button">toss</button>
+                                    </form>
                                 </td>
                                 <td class="rounded-0">
-                                    Item 2
-                                    <button class="btn btn-sm btn-outline-dark rounded-0" type="button">toss</button>
+                                    <span th:text="${item_2}"></span>
+                                    <form action="/start/room-selection" method="post">
+                                        <input type="hidden" name="option" value="1">
+                                        <button class="btn btn-sm btn-outline-dark rounded-0" type="button">toss</button>
+                                    </form>
                                 </td>
                                 <td class="rounded-0">
-                                    Item 3
-                                    <button class="btn btn-sm btn-outline-dark rounded-0" type="button">toss</button>
+                                    <span th:text="${item_3}"></span>
+                                    <form action="/start/room-selection" method="post">
+                                        <input type="hidden" name="option" value="2">
+                                        <button class="btn btn-sm btn-outline-dark rounded-0" type="button">toss</button>
+                                    </form>
                                 </td>
                                 <td class="rounded-0">
-                                    Item 4
-                                    <button class="btn btn-sm btn-outline-dark rounded-0" type="button">toss</button>
+                                    <span th:text="${item_4}"></span>
+                                    <form action="/start/room-selection" method="post">
+                                        <input type="hidden" name="option" value="3">
+                                        <button class="btn btn-sm btn-outline-dark rounded-0" type="button">toss</button>
+                                    </form>
                                 </td>
                             </tr>
                         </tbody>
@@ -46,8 +58,9 @@
             </div>
         </div>
 
+        <!-- Main Game Board -->
         <div class="table-responsive">
-            <table class="table table-bordered border-dark table-info text-center align-middle mb-0 w-100"
+            <table class="table table-bordered border-dark map-info text-center align-middle mb-0 w-100"
                 aria-label="Game board">
                 <colgroup>
                     <col width="33.3333%">
@@ -75,6 +88,17 @@
             </table>
         </div>
 
+        <!-- Game Text Box -->
+        <div class="table-responsive">
+            <table class="table table-bordered border-dark dark-map text-center align-middle mb-0 w-100"
+                aria-label="Game board">
+                    <tr>
+                        <td class="py-5" th:text="${game_text}"></td>
+                    </tr>
+            </table>
+        </div>
+
+        <!-- Player Options -->
         <div class="mt-2" role="group" aria-label="Options">
             <div class="row g-0 justify-content-center">
                 <div class="col-4">

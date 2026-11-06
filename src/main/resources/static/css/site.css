@@ -1,0 +1,13 @@
+.map-info {
+    --bs-table-bg: #f5f0e4;
+    --bs-table-striped-bg: #f5f0e4;
+    --bs-table-hover-bg: #f5f0e4;
+    background-color: #f5f0e4;
+}
+
+.dark-map {
+    --bs-table-bg: #d2cec5;
+    --bs-table-striped-bg: #d2cec5;
+    --bs-table-hover-bg: #d2cec5;
+    background-color: #d2cec5;
+}

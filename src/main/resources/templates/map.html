@@ -25,10 +25,12 @@
         </form>
 
         <div class="table-responsive">
-            <table class="table table-bordered border-dark table-info text-center align-middle mb-0" aria-label="Map board">
+            <table class="table table-bordered border-dark map-info text-center align-middle mb-0" aria-label="Map board">
                 <tbody th:each="mapRow : ${mapRows}">
                     <tr>
-                        <td th:each="tile : ${mapRow}" class="map-tile" th:text="${tile}"></td>
+                        <td th:each="tile : ${mapRow}" class="map-tile"
+                            th:classappend="${tile == '?'} ? ' dark-map' : ''"
+                            th:text="${tile}"></td>
                     </tr>
                 </tbody>
             </table>

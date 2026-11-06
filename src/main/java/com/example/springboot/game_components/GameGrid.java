@@ -2,6 +2,7 @@ package com.example.springboot.game_components;
 
 import java.util.Objects;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.SessionScope;
@@ -16,6 +17,13 @@ import org.springframework.web.context.annotation.SessionScope;
  *  - 1 = left
  *  - 2 = right
  *  - 3 = bottom
+ * 
+ *  For Inventory:
+ *  - An Item Will Be Represented By A POSITIVE NUMBER (# > 0)
+ *  - A Monster Will Be Represented By A NEGATIVE NUMBER (# < 0)
+ * 
+ * It is important that a difference is established since the two entities
+ * are in seperate tables, and require different Repositories.
  * 
  * GameGrid
  */
@@ -34,10 +42,10 @@ public class GameGrid {
     // Game variables
     private int steps = 0;
     private int score = 0;
-    private int[] p_inv = {0, 0, 0, 0}; // player inventory
-
+    private int[] p_inv = {0, 0, 0, 0};
     
     // constructor
+    @Autowired
     public GameGrid(ItemRepository itemRepository){
         this.itemRepository = Objects.requireNonNull(itemRepository);
         // set starting x and y and current x and y to given x and y.
@@ -66,6 +74,9 @@ public class GameGrid {
      */
     public String roomSelection(int option){
         String retval;
+        if (gameGrid[current_floor][current_x][current_y] == null) {
+            return "The current room is unavailable.";
+        }
         // find the character for option of current room.
         char action = gameGrid[current_floor][current_x][current_y].getRoom(option);
         // if action is n, do nothing.
@@ -169,7 +180,7 @@ public class GameGrid {
         gameGrid[2][0][4] = new Room(new Action ('i', 5, itemRepository), new Action ('p'), new Action ('n'), new Action ('p'));
         
         gameGrid[2][1][2] = new Room(new Action ('o', 1), new Action ('n'), new Action ('n'), new Action ('p'));
-        gameGrid[2][1][3] = new Room('n', 'p', 'p', 'p');
+        gameGrid[2][1][3] = new Room('p', 'n', 'p', 'p');
         gameGrid[2][1][4] = new Room(new Action ('p'), new Action ('p'), new Action ('n'), new Action ('i', 2, itemRepository));
 
         gameGrid[2][2][2] = new Room('p', 'n', 'p', 'p');
@@ -246,8 +257,8 @@ public class GameGrid {
 
         // room set detour
         gameGrid[5][4][2] = new Room('n', 'u', 'p', 'n');
-        gameGrid[5][4][2] = new Room('n', 'p', 'p', 'n');
-        gameGrid[5][4][2] = new Room('n', 'p', 'u', 'n');
+        gameGrid[5][4][3] = new Room('n', 'p', 'p', 'n');
+        gameGrid[5][4][4] = new Room('n', 'p', 'u', 'n');
 
         /**
          * Floor 7 
@@ -263,7 +274,7 @@ public class GameGrid {
     /* --- Private Action Functions --- */
 
     // generic return statement
-    private String generic(){ return "Coordinates: (" + current_x + ", " + current_y + ")\nFloor: " + current_floor;}
+    public String generic(){ return "Coordinates: (" + current_x + ", " + current_y + ")\nFloor: " + current_floor;}
 
     /** 
      * Function called in the roomSelection method.
@@ -284,26 +295,30 @@ public class GameGrid {
 
     // move up
     private void move_up(){
-        if (current_x <= 0){ return; }
-        current_x--;
+        if (current_x > 0 && gameGrid[current_floor][current_x - 1][current_y] != null){
+            current_x--;
+        }
     }
 
     // move down
     private void move_down(){
-        if (current_x >= 4){ return; }
-        current_x++;
+        if (current_x < 4 && gameGrid[current_floor][current_x + 1][current_y] != null){
+            current_x++;
+        }
     }
 
     // move right
     private void move_right(){
-        if (current_y >= 4){ return; }
-        current_y++;
+        if (current_y < 4 && gameGrid[current_floor][current_x][current_y + 1] != null){
+            current_y++;
+        }
     }
 
     // move left
     private void move_left(){
-        if (current_y <= 0){ return; }
-        current_y--;
+        if (current_y > 0 && gameGrid[current_floor][current_x][current_y - 1] != null){
+            current_y--;
+        }
     }
 
     // ascend
@@ -326,8 +341,13 @@ public class GameGrid {
         for(int j = 0; j < 4; j++){
             // if they do, set action to 'p'
             if ( (l == 1 && p_inv[j] == 4) || (l == 2 && p_inv[j] == 5) ){ 
+                // rewrite lock to passageway
                 gameGrid[current_floor][current_x][current_y].rewriteAction(i, 'p'); 
+                // toss the key
+                tossInventory(j);
+                // increment steps
                 steps ++;
+                // send success message
                 return "The Door Was Unlocked!";
             }
         }
@@ -385,12 +405,18 @@ public class GameGrid {
     // get data from option at current position
     public String getCurrentData(int option){
         // returns content of current.
+        if (gameGrid[current_floor][current_x][current_y] == null) {
+            return "?";
+        }
         return gameGrid[current_floor][current_x][current_y].getImage(option);
     }
 
     // get the message associated with a specific action at a given option
     public String getGameMessage(int option){
         // returns content of current.
+        if (gameGrid[current_floor][current_x][current_y] == null) {
+            return "Unavailable";
+        }
         return gameGrid[current_floor][current_x][current_y].getMessage(option);
     }
 
@@ -404,12 +430,13 @@ public class GameGrid {
 
     // gets icons for items in player invetory at a given index
     public String getInventory(int i){
+        int temp = p_inv[i];
         // check to see if itemReporistory is null or if item at inventory space is zero
-        if (itemRepository == null || p_inv[i] == 0) {
-            return "   ";
+        if (itemRepository == null || temp == 0) {
+            return "XXX";
         }
         // use itemRepository to get icon for p_inv
-        return itemRepository.findIconById(p_inv[i]);
+        return itemRepository.findIconById(temp) + " (" + itemRepository.findIconById(temp) + ")";
     }
 
     // removes an item from the players inventory at a given index
