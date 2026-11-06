@@ -24,4 +24,20 @@ public class ItemRepository {
             itemId
         );
     }
+
+    public String findNameById(int itemId) {
+        return jdbcTemplate.queryForObject(
+            "SELECT item_name FROM ITEM WHERE item_id = ?",
+            String.class,
+            itemId
+        );
+    }
+
+    public int findScoreById(int itemId) {
+        return jdbcTemplate.queryForObject(
+            "SELECT item_score FROM ITEM WHERE item_id = ?",
+            Integer.class,
+            itemId
+        );
+    }
 }

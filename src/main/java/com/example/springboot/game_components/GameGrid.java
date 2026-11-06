@@ -32,7 +32,10 @@ public class GameGrid {
     private final ItemRepository itemRepository;
 
     // Game variables
-    int steps = 0;
+    private int steps = 0;
+    private int score = 0;
+    private int[] p_inv = {0, 0, 0, 0}; // player inventory
+
     
     // constructor
     public GameGrid(ItemRepository itemRepository){
@@ -45,6 +48,15 @@ public class GameGrid {
         defaultFloors();
     }
 
+    // continue from previous run constructor
+    public GameGrid(ItemRepository itemRepository, int i1, int i2, int i3, int i4){
+        // run default constructor
+        this(itemRepository);
+
+        // set p_item values to given integer values
+        p_inv = new int[]{i1, i2, i3, i4};
+    }
+
     /* Game Specific Functions */
 
     /**
@@ -52,43 +64,51 @@ public class GameGrid {
      * The options will connect to different room functions
      * depending on the contents of the current room. 
      */
-    public void roomSelection(int option){
+    public String roomSelection(int option){
+        String retval;
         // find the character for option of current room.
         char action = gameGrid[current_floor][current_x][current_y].getRoom(option);
         // if action is n, do nothing.
-        if (action == 'n'){ return; }
-        // increment steps
-        steps ++;
-        // convert character into game output.
-        if (action == 'p'){
-            // move
-            move(option);
-        } else if (action == 'd'){
-            // descend
-            decend();
-        } else if (action == 'u'){
-            // ascend
-            ascend();
-        } else if (action == 'e'){
-            // call exit functions
-            exit(true);
-        } else if (action == 'i'){
+        if (action == 'n'){ return "You Cannot Go That Way."; }
+
+        // Conditional Functions
+        if (action == 'i'){ 
             // call item function
-            item(option);
+            retval = item(option);
         } else if (action == '1'){
             // call lock function with argument 1
-            unlock(option, 1);
+            retval = unlock(option, 1);
         } else if (action == '2'){
             // call lock function with arguement 2
-            unlock(option, 2);
-        } else if (action == 'o'){
-            // call enemy functions and change game state to battle screen
-            fight(option);
+            retval = unlock(option, 2);
+        } else{ // Always Successful
+            // increment steps
+            steps ++;
+            // convert character into game output.
+            if (action == 'p'){
+                // move
+                retval = move(option);
+            } else if (action == 'd'){
+                // descend
+                retval = decend();
+            } else if (action == 'u'){
+                // ascend
+                retval = ascend();
+            } else if (action == 'e'){
+                // call exit functions
+                retval = exit(true);
+            } else if (action == 'o'){
+                // call enemy functions and change game state to battle screen
+                retval = fight(option);
+            } else{
+                retval = "Warning: Something Unexpected Happened.";
+            }
         }
         // check if maximum number of steps has been reached
         if (steps >= 99){
             exit(false);
         }
+        return retval;
     }
 
     /**
@@ -242,11 +262,14 @@ public class GameGrid {
 
     /* --- Private Action Functions --- */
 
+    // generic return statement
+    private String generic(){ return "Coordinates: (" + current_x + ", " + current_y + ")\nFloor: " + current_floor;}
+
     /** 
      * Function called in the roomSelection method.
      * Calls other move functions based on i.
      */ 
-    private void move(int i){
+    private String move(int i){
         if (i == 0){
             move_up();
         } else if (i == 1){
@@ -256,6 +279,7 @@ public class GameGrid {
         } else if (i == 3){
             move_down();
         }
+        return generic();
     }
 
     // move up
@@ -283,43 +307,67 @@ public class GameGrid {
     }
 
     // ascend
-    private void ascend(){
+    private String ascend(){
         // decrement current_floor
         current_floor--;
+        return generic();
     }
 
     // descend
-    private void decend(){
+    private String decend(){
         // increment current_floor
         current_floor++;
+        return generic();
     }
 
     // locked door function
-    private void unlock(int i, int l){
-        //TODO
+    private String unlock(int i, int l){
         // check if player has key for i
+        for(int j = 0; j < 4; j++){
             // if they do, set action to 'p'
-        gameGrid[current_floor][current_x][current_y].rewriteAction(i, 'p');
+            if ( (l == 1 && p_inv[j] == 4) || (l == 2 && p_inv[j] == 5) ){ 
+                gameGrid[current_floor][current_x][current_y].rewriteAction(i, 'p'); 
+                steps ++;
+                return "The Door Was Unlocked!";
+            }
+        }
+        return "The Door Is Locked.";
     }
 
     // exit function. True if success, False if ran out of steps.
-    private void exit(boolean success){
+    private String exit(boolean success){
         // TODO
-        return;
+        return "" + score;
     }
 
-    // item function
-    private void item(int i){
-        // TODO
-        // set action to 'n'
-        gameGrid[current_floor][current_x][current_y].rewriteAction(i, 'n');
+    // item function. Adds item to inventory, increments score, and increases step count on succes.
+    private String item(int i){
+        // check to see if inventory is full
+        for(int j = 0; j < 4; j++){
+            if (p_inv[j] == 0){
+                int id = gameGrid[current_floor][current_x][current_y].getID(i);
+                // set open p_inv value to
+                p_inv[j] = id;
+                // set action to 'n'
+                gameGrid[current_floor][current_x][current_y].rewriteAction(i, 'n');
+                // increment step count
+                steps++;
+                // increase score
+                score += itemRepository.findScoreById(id);
+                // return message to player regarding success
+                return "Obtained " + itemRepository.findNameById(id) + "!";
+            }
+        }
+        // return message to player stating inventory is full
+        return "Your Inventory Is Full.";
     }
 
     // enemy function
-    private void fight(int i){
+    private String fight(int i){
         // TODO
         // set action to 'n' if player obtained beast
         gameGrid[current_floor][current_x][current_y].rewriteAction(i, 'n');
+        return "Unimplemented...";
     }
 
     /* --- Get and To String Functions --- */
@@ -352,6 +400,21 @@ public class GameGrid {
         if (gameGrid[current_floor][x][y] == null){ return ""; }
         // retunrs content of current.
         return gameGrid[current_floor][x][y].getImage(option);
+    }
+
+    // gets icons for items in player invetory at a given index
+    public String getInventory(int i){
+        // check to see if itemReporistory is null or if item at inventory space is zero
+        if (itemRepository == null || p_inv[i] == 0) {
+            return "   ";
+        }
+        // use itemRepository to get icon for p_inv
+        return itemRepository.findIconById(p_inv[i]);
+    }
+
+    // removes an item from the players inventory at a given index
+    public void tossInventory(int i){
+        p_inv[i] = 0;
     }
 
     // return string format for a tile in GameGrid
@@ -434,6 +497,10 @@ class Room {
     // returns the message for a given Action
     public String getMessage(int i){
         return options[i].getMessage();
+    }
+
+    public int getID(int i){
+        return options[i].getId();
     }
 }
 
