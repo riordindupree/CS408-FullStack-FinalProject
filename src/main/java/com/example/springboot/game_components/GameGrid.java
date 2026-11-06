@@ -274,7 +274,7 @@ public class GameGrid {
     /* --- Private Action Functions --- */
 
     // generic return statement
-    public String generic(){ return "Coordinates: (" + current_x + ", " + current_y + ")\nFloor: " + current_floor;}
+    public String generic(){ return "Coordinates: (" + (current_x + 1) + ", " + (current_y + 1) + ")\nFloor: " + (current_floor + 1);}
 
     /** 
      * Function called in the roomSelection method.
@@ -357,7 +357,9 @@ public class GameGrid {
     // exit function. True if success, False if ran out of steps.
     private String exit(boolean success){
         // TODO
-        return "" + score;
+        int total = score + 99 - steps;
+        if (!success){ total -= 10000; }
+        return "" + total;
     }
 
     // item function. Adds item to inventory, increments score, and increases step count on succes.
@@ -455,8 +457,8 @@ public class GameGrid {
         // fill retval string with values in format for map page
         String retval = "";
         // get first two values
-        retval += gameGrid[floor][x][y].getImage(0) + "\n";
-        retval += gameGrid[floor][x][y].getImage(1);
+        retval += gameGrid[floor][x][y].getImageMap(0) + "\n";
+        retval += gameGrid[floor][x][y].getImageMap(1);
         // check if current tile has player
         if (floor == current_floor && x == current_x && y == current_y){
             // add player to tile
@@ -466,8 +468,8 @@ public class GameGrid {
             retval += "\t\t";
         }
         // get last two values
-        retval += gameGrid[floor][x][y].getImage(2) + "\n";
-        retval += gameGrid[floor][x][y].getImage(3);
+        retval += gameGrid[floor][x][y].getImageMap(2) + "\n";
+        retval += gameGrid[floor][x][y].getImageMap(3);
 
         return retval;
     }
@@ -516,9 +518,14 @@ class Room {
         return options[i].getAction();
     }
 
-    // returns the image for a given Action
+    // returns the image for a given Action. Item image shows icon accurately
     public String getImage(int i){
-        return options[i].getIcon();
+        return options[i].getIcon(true);
+    }
+
+    // returns the image for a given Action while hiding item icons on the map.
+    public String getImageMap(int i){
+        return options[i].getIcon(false);
     }
 
     // returns the message for a given Action
@@ -560,9 +567,9 @@ class Action {
     }
 
     // returns the icon of a given Action
-    public String getIcon(){
+    public String getIcon(boolean showItem){
         // if item, get item image from database
-        if (action == 'i'){
+        if (action == 'i' && showItem){
             if (itemRepository == null) {
                 throw new IllegalStateException("Item actions require an ItemRepository.");
             }

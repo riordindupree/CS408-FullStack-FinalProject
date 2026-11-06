@@ -1,6 +1,7 @@
 package com.example.springboot;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -42,8 +43,9 @@ class MapControllerTest {
     mvc.perform(get("/map").param("floor", "1"))
         .andExpect(status().isOk())
         .andExpect(content().string(containsString("Floor 1")))
-        .andExpect(content().string(containsString("item-icon-1")))
-        .andExpect(content().string(containsString("item-icon-2")))
-        .andExpect(content().string(containsString("item-icon-3")));
+        .andExpect(content().string(containsString("𐙚")))
+        .andExpect(content().string(not(containsString("item-icon-1"))))
+        .andExpect(content().string(not(containsString("item-icon-2"))))
+        .andExpect(content().string(not(containsString("item-icon-3"))));
   }
 }
