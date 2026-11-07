@@ -57,4 +57,4 @@ The project plan can be found at `https://docs.google.com/document/d/1fUvD8a-E76
 
 To view the project after it is after the last update to the EC2 server, go to the following webpage: `http://44.251.58.31/`
 
-The version found on EC2 is currently running off of commit `https://github.com/riordindupree/CS408-FullStack-FinalProject/commit/65e30ea0131701654a935c5d772e0e2c206af26c`
+The version found on EC2 is currently running off of commit `https://github.com/riordindupree/CS408-FullStack-FinalProject/commit/bc8163a3d1e4ad7cb013518ab7917ddfca3c4e69`
