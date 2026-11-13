@@ -68,3 +68,39 @@ CREATE TABLE GAINED_MONSTER (
     CONSTRAINT fk_gained_monster_run
         FOREIGN KEY (run_id) REFERENCES RUN(run_id)
 )
+
+-- monster / monster interaction
+CREATE TABLE MONSTER_MONSTER (
+    -- key attributes
+    enemy_monster INTEGER NOT NULL,
+    player_monster INTEGER NOT NULL,
+    current_state CHAR NOT NULL,
+    -- effect attributes
+    result TEXT, -- describes what happened
+    new_state CHAR, -- NULL if state did not change
+    lose BOOLEAN, -- If player_monster gets removed, attribute is TRUE
+    -- foreign/primary key declaration
+    CONSTRAINT pk_monster_monster PRIMARY KEY (enemy_monster, player_monster, current_state),
+    CONSTRAINT fk_monster_monster_enemy
+        FOREIGN KEY (enemy_monster) REFERENCES MONSTER(monster_id),
+    CONSTRAINT fk_monster_monster_player
+        FOREIGN KEY (player_monster) REFERENCES MONSTER(monster_id)
+)
+
+-- monster / item interaction
+CREATE TABLE MONSTER_ITEM (
+    -- key attributes
+    enemy_monster INTEGER NOT NULL,
+    player_item INTEGER NOT NULL,
+    current_state CHAR NOT NULL,
+    -- effect attributes
+    result TEXT, -- describes what happened
+    new_state CHAR, -- NULL if state did not change
+    lose BOOLEAN, -- If player_item gets removed, attribute is TRUE
+    -- foreign/primary key declaration
+    CONSTRAINT pk_item_monster PRIMARY KEY (enemy_monster, player_item, current_state),
+    CONSTRAINT fk_item_monster_enemy
+        FOREIGN KEY (enemy_monster) REFERENCES MONSTER(monster_id),
+    CONSTRAINT fk_item_monster_item
+        FOREIGN KEY (player_item) REFERENCES ITEM(item_id),
+)

@@ -38,4 +38,37 @@ INSERT INTO ITEM (item_id, item_name, item_desc, item_icon, item_score) VALUES
 
 SELECT setval(pg_get_serial_sequence('item', 'item_id'), (SELECT MAX(item_id) FROM ITEM), TRUE);
 
+-- Fight Screen Interactions
+-- NOTE: 
+--  *  For all monsters, 'a' is the starting state.
+--  *  Catchable state will always be '!'.
+--  *  Caught state will always be '$'.
+--  *  Failed captures will always be 'x'.
+--  *  If an interaction does not exist, default response is 'Nothing Happened'. 
+--     The player does not lose a step.
+--  *  If the current state in the key is marked as '0', that means the given
+--     interaction will alwasys happen, regardless of state.
+
+INSERT INTO MONSTER_MONSTER () VALUES
+    -- Molynx (1) Interactions
+    (1, 2, 'a', 'The Opposing Molynx Ate Iktorb!', NULL, TRUE),
+    (1, 4, '0', 'The Opposing Molynx Ran Away!', 'x', FALSE),
+    (1, 5, 'a', 'The Opposing Molynx Tried To Swallow Fleastrike! It Cannot Stomache The Fluff! Molynx Is Vulnerable!', '!', TRUE),
+    (1, 6, 'a', 'The Opposing Molynx Tried To Swallow Soupon! It Burned Its Tounge! Molynx Is Vulnerable!', '!', FALSE),
+    (1, 7, '0', 'The Opposing Molynx Ran Away!', 'x', FALSE),
+    (1, 2, '!', 'Molynx Was Caught!', '$', FALSE),
+    (1, 3, '!', 'Molynx Was Caught!', '$', FALSE),
+
+    -- Iktorkb (2) Interactions
+    (2, 1, '0', 'Your Molynx Ate The Iktorb!', 'x', FALSE),
+    (2, 2, '0', 'The Net Failed! (How Are You Supposed To Catch A Spider With Its Own Web?)', NULL),
+    (2, 3, '0', 'Iktorb Was Caught!', '$', FALSE),
+    (2, 4, '0', 'Your Quapok Ate The Iktorb!', 'x', FALSE),
+    (2, 5, '0', 'Iktorb Accepted Your Offering! Iktorb Was Caught!', 'x', TRUE),
+    
+
+
+INSERT INTO MONSTER_ITEM () VALUES
+
+
 COMMIT;
