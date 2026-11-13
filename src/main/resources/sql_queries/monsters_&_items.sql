@@ -19,7 +19,7 @@ DELETE FROM MONSTER
 WHERE monster_name IN ('Molynx', 'Iktorb', 'Lappup', 'Quapok', 'Fleastrike', 'Soupon', 'Korokorobi');
 
 INSERT INTO MONSTER (monster_id, monster_name, monster_desc, monster_icon, monster_score) VALUES
-    (1, 'Molynx', 'A somewhat rodent-like creature. They are very opportunistic hunters.', 'ᘛ⁐̤ᕐᐷ', 3800),
+    (1, 'Molynx', 'A somewhat rodent-like creature. They are very opportunistic hunters.', 'ᘛ⁐̤ᕐᐷ', 2800),
     (2, 'Iktorb', 'Spider-like creatures used to capture certain creatures with its sticky webs.', 'ᕐ⚗︎', 1400),
     (3, 'Lappup', 'Dog-like creatures used to capture certain creatures by swallowing them whole.', '૮(´ ཀ `)ა', 2300),
     (4, 'Quapok', 'Large duck-like creature. Great at attacking other creatures.', E'⊃ভ了\n⋂', 5500),
@@ -70,7 +70,8 @@ INSERT INTO MONSTER_MONSTER () VALUES
     -- Lappup (3) Interactions
     (3, 1, '0', 'Lappup Swallowed The Molynx And Ran Off!', 'x', TRUE),
     (3, 2, 'a', 'Lappup Swallowed The Iktorb And Ran Off!', 'x', TRUE),
-    (3, 2, '!', 'Lappup Was Caught!', '!', FALSE),
+    (3, 2, '1', 'Lappup Was Caught!', '!', FALSE),
+    (3, 2, '2', 'Lappup Was Caught!', '!', FALSE),
     (3, 3, '0', 'The Lappups Started Playing!', NULL, FALSE),
     (3, 4, '0', 'Lappup Ran Away!', 'x', FALSE),
     (3, 5, '0', 'Lappup Looked At You Curiously.', NULL, FALSE),
@@ -98,13 +99,13 @@ INSERT INTO MONSTER_MONSTER () VALUES
     (4, 6, '1', 'The Quapok Stomped! Soupon Was Defeated!', 'a', TRUE),
     (4, 7, '1', 'Korokorobi Told Quapok To Chill Out! It Did Not Work!', 'a', TRUE),
     -- attack hungry
-    (4, 1, '1', 'The Quapok Lunged With Its Mouth Wide Open! Molynx Was Defeated!', 'a', TRUE),
-    (4, 2, '1', 'The Quapok Lunged With Its Mouth Wide Open! Iktrob Was Defeated!', 'a', TRUE),
-    (4, 3, '1', 'The Quapok Lunged With Its Mouth Wide Open! Lappup Was Defeated!', 'a', TRUE),
-    (4, 4, '1', 'The Quapok Backed Off!', 'a', FALSE),
-    (4, 5, '1', 'The Quapok Lunged With Its Mouth Wide Open! Fleastrike Was Swallowed! Quapok Is Vulnerable!', '!', TRUE),
-    (4, 6, '1', 'The Quapok Lunged With Its Mouth Wide Open! Quapok Was Burned! Quapok Is Vulnerable!', '!', FALSE),
-    (4, 7, '1', 'Korokorobi Told Quapok To Chill Out! Quapok Chilled Out!', '$', FALSE),
+    (4, 1, '2', 'The Quapok Lunged With Its Mouth Wide Open! Molynx Was Defeated!', 'a', TRUE),
+    (4, 2, '2', 'The Quapok Lunged With Its Mouth Wide Open! Iktrob Was Defeated!', 'a', TRUE),
+    (4, 3, '2', 'The Quapok Lunged With Its Mouth Wide Open! Lappup Was Defeated!', 'a', TRUE),
+    (4, 4, '2', 'The Quapok Backed Off!', 'a', FALSE),
+    (4, 5, '2', 'The Quapok Lunged With Its Mouth Wide Open! Fleastrike Was Swallowed! Quapok Is Vulnerable!', '!', TRUE),
+    (4, 6, '2', 'The Quapok Lunged With Its Mouth Wide Open! Quapok Was Burned! Quapok Is Vulnerable!', '!', FALSE),
+    (4, 7, '2', 'Korokorobi Told Quapok To Chill Out! Quapok Chilled Out!', '$', FALSE),
     -- dazed
     (4, 2, '!', 'Quapok Was Caught!', '$', FALSE),
     (4, 3, '!', 'Lappup Tried To Catch The Quapok! It Was Too Big! Quapok Is No Longer Vulnerable!', 'a', FALSE),
@@ -170,6 +171,40 @@ INSERT INTO MONSTER_MONSTER () VALUES
 
 
 INSERT INTO MONSTER_ITEM () VALUES
+    -- Molynx (1) Interactions
+    (1, 1, 'a', 'Molynx Ate The Salty Berry!', NULL, TRUE),
+    (1, 2, 'a', 'Molynx Ate The Spicy Berry!', NULL, TRUE),
+    (1, 3, 'a', 'Molynx Ate The Twin Berry!', NULL, TRUE),
+    (1, 4, 'a', 'Molynx Ate The Key!', NULL, TRUE),
+    (1, 5, 'a', 'Molynx Ate The Key!', NULL, TRUE),
 
+    -- Iktrob (2) Interactions
+    (2, 3, 'a', 'Iktorb Accepted Your Offering! Iktorb Was Caught!', '$', TRUE),
+
+    -- Lappup (3) Interactions
+    (1, 1, 'a', 'Molynx Ate The Salty Berry!', '1', TRUE),
+    (1, 2, 'a', 'Molynx Ate The Spicy Berry!', '1', TRUE),
+    (1, 3, 'a', 'Molynx Ate The Twin Berry!', '1', TRUE),
+    (1, 1, '1', 'Molynx Ate The Salty Berry!', '2', TRUE),
+    (1, 2, '1', 'Molynx Ate The Spicy Berry!', '2', TRUE),
+    (1, 3, '1', 'Molynx Ate The Twin Berry!', '2', TRUE),
+    (1, 1, '2', 'Molynx Ate The Salty Berry! Lappup Was Caught!', '$', TRUE),
+    (1, 2, '2', 'Molynx Ate The Spicy Berry! Lappup Was Caught!', '$', TRUE),
+    (1, 3, '2', 'Molynx Ate The Twin Berry! Lappup Was Caught!', '$', TRUE),
+
+    -- Quapok (4) Interactions
+    (4, 1, 'a', 'Quapok Gazed Hungrily Toward The Salty Berry! The Quapok Prepared To Attack!', '2', FALSE),
+    (4, 2, 'a', 'Quapok Ignored The Spicy Berry...', NULL, FALSE),
+    (4, 3, 'a', 'Quapok Ignored The Twin Berry...', NULL, FALSE),
+    -- berry responses
+    (4, 1, '2', 'Quapok Ate The Salty Berry!', 'a', TRUE),
+    (4, 2, '2', 'Quapok Ate The Spicy Berry! It Cannot Handle The Spice! Quapok Is Dazed!', '!', TRUE),
+
+    -- Fleastrike (5) Interactions
+    (5, 1, '0', 'Fleastrike Ate The Salty Berry! Fleastrike Was Caught!', '$', TRUE),
+
+    -- Soupon (6) Interactions
+    (6, 2, 'a', 'Soupon Ate The Spicy Berry! Soupon Is Vulnerable', '!', TRUE),
+    (6, 2, '!', 'Soupon Was Caught!', '$', TRUE),
 
 COMMIT;
