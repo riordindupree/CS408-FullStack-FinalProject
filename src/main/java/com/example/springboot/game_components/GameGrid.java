@@ -460,11 +460,11 @@ public class GameGrid {
         }
         if (inventoryId > 0) {
             return itemRepository.findNameById(inventoryId)
-                + " (" + itemRepository.findIconById(inventoryId) + ")";
+                + " [ " + itemRepository.findIconById(inventoryId) + " ]";
         }
         int monsterId = -inventoryId;
         return monsterRepository.findNameById(monsterId)
-            + " (" + monsterRepository.findIconById(monsterId) + ")";
+            + " [ " + firstLine(monsterRepository.findIconById(monsterId)) + " ]";
     }
 
     // Applies the database interaction for the selected inventory slot.

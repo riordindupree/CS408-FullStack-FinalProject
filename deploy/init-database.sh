@@ -2,6 +2,7 @@
 #
 # Initialize the application database from src/main/resources/sql_queries.
 # The idempotent schema is checked every run; seed SQL runs once by default.
+# Versioned migrations run once, including on already-initialized databases.
 # Pass --refresh-seeds to reapply seed data.
 
 set -euo pipefail
@@ -17,6 +18,7 @@ case "${1:-}" in
     --help|-h)
         printf 'Usage: %s [--refresh-seeds]\n' "$0"
         printf 'The schema is safely reapplied each run; seed files run once by default.\n'
+        printf 'Versioned migrations are applied once, including to initialized databases.\n'
         printf '--refresh-seeds reapplies seed files.\n'
         exit 0
         ;;
@@ -34,6 +36,7 @@ esac
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 APP_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 SQL_DIR="${APP_DIR}/src/main/resources/sql_queries"
+MIGRATION_DIR="${SQL_DIR}/migrations"
 DB_NAME="${PGDATABASE:-game_db}"
 INIT_MARKER="deploy_sql_initialized"
 FILE_MARKER="deploy_sql_files"
@@ -101,6 +104,27 @@ SQL
         printf 'Applying %s\n' "$file_name"
     fi
     psql --no-psqlrc --set=ON_ERROR_STOP=1 --file="$sql_file"
+    mark_file_applied "$file_name"
+done
+
+# Unlike seed files, versioned migrations are intended to update databases
+# that have already been initialized. Track them separately from seed files.
+for sql_file in "${MIGRATION_DIR}"/*.sql; do
+    [ -f "$sql_file" ] || continue
+    file_name="migrations/$(basename "$sql_file")"
+    file_applied="$(psql --no-psqlrc --tuples-only --no-align --set=ON_ERROR_STOP=1 \
+        --set=file_name="$file_name" <<'SQL'
+SELECT EXISTS (
+    SELECT 1 FROM public.deploy_sql_files WHERE file_name = :'file_name'
+);
+SQL
+)"
+    if [ "$file_applied" = "t" ]; then
+        printf '%s already applied; skipping.\n' "$file_name"
+        continue
+    fi
+    printf 'Applying migration %s\n' "$file_name"
+    psql --no-psqlrc --set=ON_ERROR_STOP=1 --single-transaction --file="$sql_file"
     mark_file_applied "$file_name"
 done
 

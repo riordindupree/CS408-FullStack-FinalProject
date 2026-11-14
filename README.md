@@ -37,7 +37,7 @@ After this, you can start the database using the following command.
 
 The program will prompt you to insert a password. The password will be whatever password you had created when installing PostgreSQL. This will create a `.env.local` file which is automatically excluded by the gitignore.
 
-The setup script creates the local database and user, safely reapplies `schema.sql` so newly defined tables are created in existing databases, and refreshes the sample monster/item and test-user data each time it is run. It removes the matching seeded rows before re-inserting them; unrelated player and run records are left in place.
+The setup script creates the local database and user, safely reapplies `schema.sql` so newly defined tables are created in existing databases, and refreshes the sample monster/item and test-user data each time it is run. It removes the matching seeded rows before re-inserting them; unrelated player and run records are left in place. Versioned SQL files in `src/main/resources/sql_queries/migrations` are applied once, including to already-initialized EC2 databases.
 
 After that is complete, start the application using:
 

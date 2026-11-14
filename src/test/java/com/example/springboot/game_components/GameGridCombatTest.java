@@ -145,7 +145,7 @@ class GameGridCombatTest {
 
     // Verify that inventory shows only the first line of multi-line monster art.
     @Test
-    void inventoryTruncatesMultiLineMonsterIconsOnly() throws Exception {
+    void inventoryAndFightButtonsTruncateMultiLineMonsterIconsOnly() throws Exception {
         jdbcTemplate.update(
             "UPDATE MONSTER SET monster_icon = ? WHERE monster_id = 4",
             "Quapok first line\nQuapok second line"
@@ -163,6 +163,9 @@ class GameGridCombatTest {
         assertEquals("Quapok first line", grid.getInventory(0));
         assertEquals("Korokorobi first line", grid.getInventory(1));
         assertEquals("Item first line\nItem second line", grid.getInventory(2));
+        assertEquals("Monster 4 [ Quapok first line ]", grid.getFightOption(0));
+        assertEquals("Monster 7 [ Korokorobi first line ]", grid.getFightOption(1));
+        assertEquals("Item 1 [ Item first line\nItem second line ]", grid.getFightOption(2));
     }
 
     // Verify that a collected monster can be used as a combat option through MONSTER_MONSTER.
