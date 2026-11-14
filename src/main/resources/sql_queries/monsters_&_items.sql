@@ -1,6 +1,10 @@
 -- Seed data from the monsters and items listed in guide.html.
 BEGIN;
 
+-- Remove interaction rows first because they reference the seeded catalog records.
+DELETE FROM MONSTER_MONSTER;
+DELETE FROM MONSTER_ITEM;
+
 DELETE FROM GAINED_ITEM
 WHERE item_id IN (
     SELECT item_id
@@ -49,7 +53,8 @@ SELECT setval(pg_get_serial_sequence('item', 'item_id'), (SELECT MAX(item_id) FR
 --  *  If the current state in the key is marked as '0', that means the given
 --     interaction will alwasys happen, regardless of state.
 
-INSERT INTO MONSTER_MONSTER () VALUES
+-- Store each enemy response by enemy, player item/monster, and enemy state.
+INSERT INTO MONSTER_MONSTER (enemy_monster, player_monster, current_state, result, new_state, lose) VALUES
     -- Molynx (1) Interactions
     (1, 2, 'a', 'Molynx Ate Iktorb!', NULL, TRUE),
     (1, 4, '0', 'Molynx Ran Away!', 'x', FALSE),
@@ -61,7 +66,7 @@ INSERT INTO MONSTER_MONSTER () VALUES
 
     -- Iktorkb (2) Interactions
     (2, 1, '0', 'Your Molynx Ate The Iktorb!', 'x', FALSE),
-    (2, 2, '0', 'The Net Failed! (How Are You Supposed To Catch A Spider With Its Own Web?)', NULL),
+    (2, 2, '0', 'The Net Failed! (How Are You Supposed To Catch A Spider With Its Own Web?)', NULL, FALSE),
     (2, 3, '0', 'Iktorb Was Caught!', '$', FALSE),
     (2, 4, '0', 'Your Quapok Ate The Iktorb!', 'x', FALSE),
     (2, 5, '0', 'Iktorb Accepted Your Offering! Iktorb Was Caught!', '$', TRUE),
@@ -70,8 +75,8 @@ INSERT INTO MONSTER_MONSTER () VALUES
     -- Lappup (3) Interactions
     (3, 1, '0', 'Lappup Swallowed The Molynx And Ran Off!', 'x', TRUE),
     (3, 2, 'a', 'Lappup Swallowed The Iktorb And Ran Off!', 'x', TRUE),
-    (3, 2, '1', 'Lappup Was Caught!', '!', FALSE),
-    (3, 2, '2', 'Lappup Was Caught!', '!', FALSE),
+    (3, 2, '1', 'Lappup Was Caught!', '$', FALSE),
+    (3, 2, '2', 'Lappup Was Caught!', '$', FALSE),
     (3, 3, '0', 'The Lappups Started Playing!', NULL, FALSE),
     (3, 4, '0', 'Lappup Ran Away!', 'x', FALSE),
     (3, 5, '0', 'Lappup Looked At You Curiously.', NULL, FALSE),
@@ -112,11 +117,11 @@ INSERT INTO MONSTER_MONSTER () VALUES
 
     -- Fleastrike (5) Interactions
     (5, 1, '0', 'Your Molynx Ate The Fleastrike!', 'x', FALSE),
-    (5, 2, '0', 'Fleastrike Was Caught!', '$', TRUE),
+    (5, 2, '0', 'Fleastrike Was Caught!', '$', FALSE),
     (5, 3, '0', 'Lappup Refused!', NULL, FALSE),
     (5, 4, '0', 'Fleastrike Lunged Toward The Quapok! Quapok Grew Ill From The Parasite!', NULL, TRUE),
-    (5, 5, '0', 'An Infestation!', '$', TRUE),
-    (5, 7, '0', 'Fleastrike and Korokorbi Sat Down For A Nice Cup Of Tea!', '$', TRUE),
+    (5, 5, '0', 'An Infestation!', '$', FALSE),
+    (5, 7, '0', 'Fleastrike and Korokorbi Sat Down For A Nice Cup Of Tea!', '$', FALSE),
 
     -- Soupon (6) Interactions
     (6, 1, '0', 'Molynx Was Burned!', NULL, TRUE),
@@ -165,12 +170,12 @@ INSERT INTO MONSTER_MONSTER () VALUES
     (7, 7, 'g', 'Nanakorobi Yaoki: Fall Down 7 Times, Stand Up 8.', '$', FALSE),
     -- Catch!
     (7, 2, '!', 'Korokorobi Was Caught!', '$', FALSE),
-    (7, 3, '!', 'Korokorobi Was Caught!', '$', FALSE)
+    (7, 3, '!', 'Korokorobi Was Caught!', '$', FALSE);
 
 
 
-
-INSERT INTO MONSTER_ITEM () VALUES
+-- Store each enemy response to an item using the same state-based rule format.
+INSERT INTO MONSTER_ITEM (enemy_monster, player_item, current_state, result, new_state, lose) VALUES
     -- Molynx (1) Interactions
     (1, 1, 'a', 'Molynx Ate The Salty Berry!', NULL, TRUE),
     (1, 2, 'a', 'Molynx Ate The Spicy Berry!', NULL, TRUE),
@@ -182,15 +187,15 @@ INSERT INTO MONSTER_ITEM () VALUES
     (2, 3, 'a', 'Iktorb Accepted Your Offering! Iktorb Was Caught!', '$', TRUE),
 
     -- Lappup (3) Interactions
-    (1, 1, 'a', 'Molynx Ate The Salty Berry!', '1', TRUE),
-    (1, 2, 'a', 'Molynx Ate The Spicy Berry!', '1', TRUE),
-    (1, 3, 'a', 'Molynx Ate The Twin Berry!', '1', TRUE),
-    (1, 1, '1', 'Molynx Ate The Salty Berry!', '2', TRUE),
-    (1, 2, '1', 'Molynx Ate The Spicy Berry!', '2', TRUE),
-    (1, 3, '1', 'Molynx Ate The Twin Berry!', '2', TRUE),
-    (1, 1, '2', 'Molynx Ate The Salty Berry! Lappup Was Caught!', '$', TRUE),
-    (1, 2, '2', 'Molynx Ate The Spicy Berry! Lappup Was Caught!', '$', TRUE),
-    (1, 3, '2', 'Molynx Ate The Twin Berry! Lappup Was Caught!', '$', TRUE),
+    (3, 1, 'a', 'Lappup Ate The Salty Berry!', '1', TRUE),
+    (3, 2, 'a', 'Lappup Ate The Spicy Berry!', '1', TRUE),
+    (3, 3, 'a', 'Lappup Ate The Twin Berry!', '1', TRUE),
+    (3, 1, '1', 'Lappup Ate The Salty Berry!', '2', TRUE),
+    (3, 2, '1', 'Lappup Ate The Spicy Berry!', '2', TRUE),
+    (3, 3, '1', 'Lappup Ate The Twin Berry!', '2', TRUE),
+    (3, 1, '2', 'Lappup Ate The Salty Berry! Lappup Was Caught!', '$', TRUE),
+    (3, 2, '2', 'Lappup Ate The Spicy Berry! Lappup Was Caught!', '$', TRUE),
+    (3, 3, '2', 'Lappup Ate The Twin Berry! Lappup Was Caught!', '$', TRUE),
 
     -- Quapok (4) Interactions
     (4, 1, 'a', 'Quapok Gazed Hungrily Toward The Salty Berry! The Quapok Prepared To Attack!', '2', FALSE),
@@ -205,6 +210,6 @@ INSERT INTO MONSTER_ITEM () VALUES
 
     -- Soupon (6) Interactions
     (6, 2, 'a', 'Soupon Ate The Spicy Berry! Soupon Is Vulnerable', '!', TRUE),
-    (6, 2, '!', 'Soupon Was Caught!', '$', TRUE),
+    (6, 2, '!', 'Soupon Was Caught!', '$', TRUE);
 
 COMMIT;

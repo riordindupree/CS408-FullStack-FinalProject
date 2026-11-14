@@ -1,6 +1,7 @@
 package com.example.springboot.game_components;
 
 import java.util.Objects;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ScopedProxyMode;
@@ -38,6 +39,13 @@ public class GameGrid {
     // declare gameGrid struct
     private Room[][][] gameGrid = new Room[7][5][5];
     private final ItemRepository itemRepository;
+    private final MonsterRepository monsterRepository;
+    // Tracks whether the current session is showing an encounter or a victory choice.
+    private boolean fighting;
+    private boolean victoryPending;
+    // The enemy action remains in its room so fleeing preserves its current state.
+    private Action activeMonster;
+    private int activeMonsterOption = -1;
 
     // Game variables
     private int steps = 0;
@@ -46,8 +54,9 @@ public class GameGrid {
     
     // constructor
     @Autowired
-    public GameGrid(ItemRepository itemRepository){
+    public GameGrid(ItemRepository itemRepository, MonsterRepository monsterRepository){
         this.itemRepository = Objects.requireNonNull(itemRepository);
+        this.monsterRepository = Objects.requireNonNull(monsterRepository);
         // set starting x and y and current x and y to given x and y.
         current_x = 2;
         current_y = 2;
@@ -57,9 +66,9 @@ public class GameGrid {
     }
 
     // continue from previous run constructor
-    public GameGrid(ItemRepository itemRepository, int i1, int i2, int i3, int i4){
+    public GameGrid( ItemRepository itemRepository, MonsterRepository monsterRepository, int i1, int i2, int i3, int i4 ){
         // run default constructor
-        this(itemRepository);
+        this(itemRepository, monsterRepository);
 
         // set p_item values to given integer values
         p_inv = new int[]{i1, i2, i3, i4};
@@ -92,9 +101,14 @@ public class GameGrid {
         } else if (action == '2'){
             // call lock function with arguement 2
             retval = unlock(option, 2);
-        } else{ // Always Successful
-            // increment steps
-            steps ++;
+        } else if (action == 'o'){
+            // Entering combat only opens the fight screen; it does not consume a step.
+            retval = fight(option);
+        } else if (action == 'e'){
+            // Reaching the exit completes the run without spending another step.
+            retval = exit(true);
+        } else{ // Handle room actions that consume a step.
+            steps++;
             // convert character into game output.
             if (action == 'p'){
                 // move
@@ -105,12 +119,6 @@ public class GameGrid {
             } else if (action == 'u'){
                 // ascend
                 retval = ascend();
-            } else if (action == 'e'){
-                // call exit functions
-                retval = exit(true);
-            } else if (action == 'o'){
-                // call enemy functions and change game state to battle screen
-                retval = fight(option);
             } else{
                 retval = "Warning: Something Unexpected Happened.";
             }
@@ -132,7 +140,7 @@ public class GameGrid {
         gameGrid[0][0][1] = new Room('n', 'n', 'p', 'p');
         gameGrid[0][0][2] = new Room('n', 'p', 'n', 'p');
 
-        gameGrid[0][1][0] = new Room(new Action('n'), new Action('o', 4), new Action ('p'), new Action('n')); // quapok
+        gameGrid[0][1][0] = new Room(new Action('n'), new Action('o', 4, monsterRepository), new Action ('p'), new Action('n')); // quapok
         gameGrid[0][1][1] = new Room('p', 'p', 'n', 'p');
         gameGrid[0][1][2] = new Room('p', 'n', 'p', 'p');
         gameGrid[0][1][3] = new Room('n', 'p', 'd', 'n'); // next floor
@@ -152,12 +160,12 @@ public class GameGrid {
         gameGrid[1][0][0] = new Room('n', 'd', 'n', 'p'); // next floor: dead end
 
         gameGrid[1][1][0] = new Room('p', 'n', 'p', 'p');
-        gameGrid[1][1][1] = new Room(new Action ('o', 5), new Action ('p'), new Action ('p'), new Action ('n'));
+        gameGrid[1][1][1] = new Room(new Action ('o', 5, monsterRepository), new Action ('p'), new Action ('p'), new Action ('n'));
         gameGrid[1][1][2] = new Room('n', 'p', 'p', 'p');
         gameGrid[1][1][3] = new Room('n', 'p', 'u', 'n'); // starting room
 
         gameGrid[1][2][0] = new Room('p', 'n', 'p', 'p');
-        gameGrid[1][2][1] = new Room(new Action ('o', 4), new Action ('p'), new Action ('n'), new Action ('i', 5, itemRepository));
+        gameGrid[1][2][1] = new Room(new Action ('o', 4, monsterRepository), new Action ('p'), new Action ('n'), new Action ('i', 5, itemRepository));
         gameGrid[1][2][2] = new Room('p', 'n', 'n', 'p');
 
         gameGrid[1][3][0] = new Room('p', 'n', 'p', 'n');
@@ -171,7 +179,7 @@ public class GameGrid {
         */
         // side path
         gameGrid[2][0][0] = new Room('n', 'u', 'p', 'p'); // starting room: dead end
-        gameGrid[2][0][1] = new Room(new Action ('i', 1, itemRepository), new Action ('p'), new Action ('n'), new Action ('o', 6));
+        gameGrid[2][0][1] = new Room(new Action ('i', 1, itemRepository), new Action ('p'), new Action ('n'), new Action ('o', 6, monsterRepository));
 
         gameGrid[2][1][0] = new Room(new Action ('p'), new Action ('n'), new Action ('n'), new Action ('i', 4, itemRepository));
 
@@ -179,7 +187,7 @@ public class GameGrid {
         gameGrid[2][0][3] = new Room(new Action ('n'), new Action ('i', 3, itemRepository), new Action ('p'), new Action ('p'));
         gameGrid[2][0][4] = new Room(new Action ('i', 5, itemRepository), new Action ('p'), new Action ('n'), new Action ('p'));
         
-        gameGrid[2][1][2] = new Room(new Action ('o', 1), new Action ('n'), new Action ('n'), new Action ('p'));
+        gameGrid[2][1][2] = new Room(new Action ('o', 1, monsterRepository), new Action ('n'), new Action ('n'), new Action ('p'));
         gameGrid[2][1][3] = new Room('p', 'n', 'p', 'p');
         gameGrid[2][1][4] = new Room(new Action ('p'), new Action ('p'), new Action ('n'), new Action ('i', 2, itemRepository));
 
@@ -188,7 +196,7 @@ public class GameGrid {
 
         gameGrid[2][3][2] = new Room('p', 'd', 'u', '1'); // starting room & next floor
 
-        gameGrid[2][4][2] = new Room(new Action ('p'), new Action ('n'), new Action ('o', 5), new Action ('i', 5, itemRepository));
+        gameGrid[2][4][2] = new Room(new Action ('p'), new Action ('n'), new Action ('o', 5, monsterRepository), new Action ('i', 5, itemRepository));
         
         /** 
          * Floor 4 
@@ -198,7 +206,7 @@ public class GameGrid {
         gameGrid[3][1][2] = new Room('2', 'n', 'n', 'p');
 
         gameGrid[3][2][2] = new Room('p', 'n', 'p', 'p');
-        gameGrid[3][2][3] = new Room(new Action ('o', 5), new Action ('p'), new Action ('i', 3, itemRepository), new Action ('i', 1, itemRepository));
+        gameGrid[3][2][3] = new Room(new Action ('o', 5, monsterRepository), new Action ('p'), new Action ('i', 3, itemRepository), new Action ('i', 1, itemRepository));
         
         gameGrid[3][3][2] = new Room('1', 'u', 'n', 'p'); // starting room
 
@@ -216,13 +224,13 @@ public class GameGrid {
         gameGrid[4][1][2] = new Room('p', 'n', 'd', 'n');
 
         // room set Lappup
-        gameGrid[4][2][1] = new Room(new Action ('o', 3), new Action ('i', 5, itemRepository), new Action ('i', 5, itemRepository), new Action ('d'));
+        gameGrid[4][2][1] = new Room(new Action ('o', 3, monsterRepository), new Action ('i', 5, itemRepository), new Action ('i', 5, itemRepository), new Action ('d'));
 
         // room set Quapoks
         gameGrid[4][3][2] = new Room('n', 'n', 'd', 'p');
 
         gameGrid[4][4][2] = new Room('p', 'd', '2', 'n'); // enter
-        gameGrid[4][4][3] = new Room(new Action ('o', 4), new Action ('p'), new Action ('o', 4), new Action ('o', 4)); // quapok room
+        gameGrid[4][4][3] = new Room(new Action ('o', 4, monsterRepository), new Action ('p'), new Action ('o', 4, monsterRepository), new Action ('o', 4, monsterRepository)); // quapok room
 
         // room set long
         gameGrid[4][1][4] = new Room('d', 'n', 'n', 'p'); // enter
@@ -236,7 +244,7 @@ public class GameGrid {
         // room set molynx
         gameGrid[5][0][1] = new Room('n', 'u', 'n', 'p'); // enter
 
-        gameGrid[5][1][0] = new Room(new Action ('n'), new Action ('o', 1), new Action ('p'), new Action ('n'));
+        gameGrid[5][1][0] = new Room(new Action ('n'), new Action ('o', 1, monsterRepository), new Action ('p'), new Action ('n'));
         gameGrid[5][1][1] = new Room('p', 'p', 'n', 'p');
 
         gameGrid[5][2][1] = new Room('p', 'n', 'n', 'u'); // exit
@@ -246,7 +254,7 @@ public class GameGrid {
         gameGrid[5][0][3] = new Room('n', 'p', 'u', 'p');
 
         gameGrid[5][1][2] = new Room('n', 'n', 'u', '1');
-        gameGrid[5][1][3] = new Room(new Action ('p'), new Action ('o', 2), new Action ('p'), new Action ('n'));
+        gameGrid[5][1][3] = new Room(new Action ('p'), new Action ('o', 2, monsterRepository), new Action ('p'), new Action ('n'));
         gameGrid[5][1][4] = new Room('u', 'p', 'n', 'p');
 
         gameGrid[5][2][2] = new Room('p', 'n', 'p', '2');
@@ -268,7 +276,23 @@ public class GameGrid {
          * 2) The second room only has a passage way back to the previous room, and the final boss.
         */
         gameGrid[6][3][2] = new Room('p', 'n', 'n', 'u'); // starting room
-        gameGrid[6][2][2] = new Room(new Action('o', 7), new Action ('n'), new Action('n'), new Action('p'));
+        gameGrid[6][2][2] = new Room(new Action('o', 7, monsterRepository), new Action ('n'), new Action('n'), new Action('p'));
+    }
+
+    // Reinitializes all per-run state and rebuilds the default dungeon rooms.
+    public void reset(){
+        current_x = 2;
+        current_y = 2;
+        current_floor = 0;
+        gameGrid = new Room[7][5][5];
+        steps = 0;
+        score = 0;
+        p_inv = new int[]{0, 0, 0, 0};
+        fighting = false;
+        victoryPending = false;
+        activeMonster = null;
+        activeMonsterOption = -1;
+        defaultFloors();
     }
 
     /* --- Private Action Functions --- */
@@ -384,12 +408,168 @@ public class GameGrid {
         return "Your Inventory Is Full.";
     }
 
+    /* --- Fight Action Functions --- */
+
+    // default output string for fights
+    String f_d = "Nothing Happened.";
+
     // enemy function
     private String fight(int i){
-        // TODO
-        // set action to 'n' if player obtained beast
-        gameGrid[current_floor][current_x][current_y].rewriteAction(i, 'n');
-        return "Unimplemented...";
+        // Keep a reference to the room's monster action so its state survives fleeing.
+        activeMonster = gameGrid[current_floor][current_x][current_y].getAction(i);
+        activeMonsterOption = i;
+        fighting = true;
+        victoryPending = activeMonster.getMonsterState() == '$';
+        // A previously defeated monster returns directly to the collect-or-run choice.
+        return victoryPending
+            ? activeMonster.getVictoryDescription()
+            : activeMonster.getFightDescription();
+    }
+
+    // Tells the controller whether to render the combat screen.
+    public boolean isFighting(){
+        return fighting;
+    }
+
+    // Tells the template whether to show the victory actions instead of combat items.
+    public boolean isVictoryPending(){
+        return victoryPending;
+    }
+
+    // Lets the template disable collection when all inventory slots are occupied.
+    public boolean hasFreeInventorySlot(){
+        return findEmptyInventorySlot(-1) >= 0;
+    }
+
+    // Returns the board image for the monster in the active encounter.
+    public String getFightMonsterIcon(){
+        return fighting ? activeMonster.getMonsterIcon() : "";
+    }
+
+    // Returns the player character symbol for the bottom of the combat board.
+    public String getFightPlayerIcon(){
+        return "ก";
+    }
+
+    // Shows which item or previously collected monster is in a combat choice slot.
+    public String getFightOption(int slot){
+        validateInventorySlot(slot);
+        int inventoryId = p_inv[slot];
+        if (inventoryId == 0) {
+            return "Empty";
+        }
+        if (inventoryId > 0) {
+            return itemRepository.findNameById(inventoryId)
+                + " (" + itemRepository.findIconById(inventoryId) + ")";
+        }
+        int monsterId = -inventoryId;
+        return monsterRepository.findNameById(monsterId)
+            + " (" + monsterRepository.findIconById(monsterId) + ")";
+    }
+
+    // Applies the database interaction for the selected inventory slot.
+    public String fightSelection(int slot){
+        if (!fighting || victoryPending || activeMonster == null) {
+            return f_d;
+        }
+        validateInventorySlot(slot);
+        int inventoryId = p_inv[slot];
+        if (inventoryId == 0) {
+            // Empty inventory choices use the same response as a missing interaction rule.
+            return f_d;
+        }
+
+        Optional<MonsterRepository.Interaction> interaction = inventoryId > 0
+            ? monsterRepository.findItemInteraction(
+                activeMonster.getId(),
+                inventoryId,
+                activeMonster.getMonsterState()
+            )
+            : monsterRepository.findMonsterInteraction(
+                activeMonster.getId(),
+                -inventoryId,
+                activeMonster.getMonsterState()
+            );
+        if (interaction.isEmpty()) {
+            return f_d;
+        }
+
+        // The interaction's lose flag consumes the selected item or companion.
+        MonsterRepository.Interaction outcome = interaction.get();
+        if (outcome.lose()) {
+            p_inv[slot] = 0;
+        }
+        // A non-null state returned by the table becomes the enemy's next state.
+        if (outcome.newState() != null) {
+            activeMonster.setMonsterState(outcome.newState());
+        }
+        steps++;
+
+        if (outcome.newState() != null && outcome.newState() == '$') {
+            // Victory waits for the player to choose Run or Collect.
+            victoryPending = true;
+        } else if (outcome.newState() != null && outcome.newState() == 'x') {
+            // The table says the enemy escaped or was defeated, so remove it from this room.
+            gameGrid[current_floor][current_x][current_y]
+                .rewriteAction(activeMonsterOption, 'n');
+            leaveFight();
+        }
+        return outcome.result() == null ? f_d : outcome.result();
+    }
+
+    // Leaves the encounter without changing the monster's room action or state.
+    public String runFromFight(){
+        if (!fighting || activeMonster == null) {
+            return f_d;
+        }
+        leaveFight();
+        return "You ran away!";
+    }
+
+    // Adds a defeated monster to an empty slot and removes it from the room.
+    public String collectDefeatedMonster(){
+        if (!fighting || !victoryPending || activeMonster == null) {
+            return f_d;
+        }
+        int captureSlot = findEmptyInventorySlot(-1);
+        if (captureSlot < 0) {
+            return "(Your inventory is full. Toss an item before collecting this monster.)";
+        }
+        int monsterId = activeMonster.getId();
+        p_inv[captureSlot] = -monsterId;
+        score += monsterRepository.findScoreById(monsterId);
+        gameGrid[current_floor][current_x][current_y]
+            .rewriteAction(activeMonsterOption, 'n');
+        leaveFight();
+        return "Collected " + monsterRepository.findNameById(monsterId) + "!";
+    }
+
+    // Clears only session combat pointers; the room action itself is handled by each choice.
+    private void leaveFight(){
+        fighting = false;
+        victoryPending = false;
+        activeMonster = null;
+        activeMonsterOption = -1;
+    }
+
+    // Finds an empty inventory slot, optionally preferring a slot freed by an interaction.
+    private int findEmptyInventorySlot(int preferredSlot){
+        if (preferredSlot >= 0 && p_inv[preferredSlot] == 0) {
+            return preferredSlot;
+        }
+        for (int i = 0; i < p_inv.length; i++) {
+            if (p_inv[i] == 0) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    // Rejects indexes outside the four supported inventory positions.
+    private void validateInventorySlot(int slot){
+        if (slot < 0 || slot >= p_inv.length) {
+            throw new IllegalArgumentException("Inventory slot must be between 0 and 3.");
+        }
     }
 
     /* --- Get and To String Functions --- */
@@ -432,17 +612,26 @@ public class GameGrid {
 
     // gets icons for items in player invetory at a given index
     public String getInventory(int i){
+        validateInventorySlot(i);
         int temp = p_inv[i];
-        // check to see if itemReporistory is null or if item at inventory space is zero
-        if (itemRepository == null || temp == 0) {
+        if (temp == 0) {
             return "XXX";
         }
-        // use itemRepository to get icon for p_inv
-        return itemRepository.findIconById(temp) + " (" + itemRepository.findIconById(temp) + ")";
+        if (temp > 0) {
+            return itemRepository.findIconById(temp);
+        }
+        return firstLine(monsterRepository.findIconById(-temp));
+    }
+
+    // Keep multi-line monster art from overflowing its single-row inventory slot.
+    private String firstLine(String icon){
+        int newlineIndex = icon.indexOf('\n');
+        return newlineIndex < 0 ? icon : icon.substring(0, newlineIndex);
     }
 
     // removes an item from the players inventory at a given index
     public void tossInventory(int i){
+        validateInventorySlot(i);
         p_inv[i] = 0;
     }
 
@@ -536,6 +725,10 @@ class Room {
     public int getID(int i){
         return options[i].getId();
     }
+
+    public Action getAction(int i){
+        return options[i];
+    }
 }
 
 /**
@@ -543,14 +736,20 @@ class Room {
  * Action
  */
 class Action {
-    private int act_id = 0;
     private char action;
+    private int act_id = 0;
+    // item files
     private final ItemRepository itemRepository;
+    // monster files
+    private final MonsterRepository monsRepository;
+    private char monster_state;
+    private String desc;
 
     // generic action constructor
     public Action(char type){
         action = type;
         itemRepository = null;
+        monsRepository = null;
     }
 
     // monster/item constructor
@@ -558,12 +757,47 @@ class Action {
         act_id = id;
         action = type;
         itemRepository = null;
+        monsRepository = null;
     }
 
     public Action(char type, int id, ItemRepository itemRepository){
         act_id = id;
         action = type;
         this.itemRepository = itemRepository;
+        monsRepository = null;
+    }
+
+    public Action(char type, int id, MonsterRepository monRepository){
+        act_id = id;
+        action = type;
+        this.monsRepository = monRepository;
+        monster_state = 'a';
+        desc = null;
+        itemRepository = null;
+    }
+
+    public String getFightDescription(){
+        desc = "You Stand Before A Wild " + monsRepository.findNameById(act_id) + "!";
+        return desc;
+    }
+
+    public String getMonsterIcon(){
+        if (monsRepository == null) {
+            throw new IllegalStateException("Monster actions require a MonsterRepository.");
+        }
+        return monsRepository.findIconById(act_id);
+    }
+
+    public char getMonsterState(){
+        return monster_state;
+    }
+
+    public void setMonsterState(char state){
+        monster_state = state;
+    }
+
+    public String getVictoryDescription(){
+        return "You defeated " + monsRepository.findNameById(act_id) + "!";
     }
 
     // returns the icon of a given Action

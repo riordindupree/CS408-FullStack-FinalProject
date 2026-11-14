@@ -34,6 +34,10 @@ public class MapController {
   public String map(
       @RequestParam(required = false) Integer floor,
       Model model) {
+    // Keep map navigation in combat until the player chooses to run or collect.
+    if (gameGrid.isFighting()) {
+      return "redirect:/fight";
+    }
     int selectedFloor = floor == null
         ? gameGrid.getCurrentFloor()
         : Math.max(1, Math.min(floor, FLOOR_COUNT));

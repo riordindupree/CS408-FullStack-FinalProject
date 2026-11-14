@@ -42,6 +42,14 @@
             capture the monster found on the 7th floor, and win this game!
         </span>
 
+        <!-- Explain why this temporary game-reset control is currently available. -->
+        <section class="text-center py-4">
+            <h5>The Following Button Is Temporary. It Will Be Removed Once Accounts And Starting Games Is Implemented.</h5>
+            <form action="/start/reset" method="post">
+                <button class="btn btn-danger" type="submit">RESET GAME</button>
+            </form>
+        </section>
+
     </main>
 
     <div th:replace="~{fragments/footer :: siteFooter}"></div>

@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 #
 # Initialize the application database from src/main/resources/sql_queries.
-# The schema and seed SQL run once by default. Pass --refresh-seeds to reload seed data.
+# The idempotent schema is checked every run; seed SQL runs once by default.
+# Pass --refresh-seeds to reapply seed data.
 
 set -euo pipefail
 
@@ -15,7 +16,8 @@ case "${1:-}" in
         ;;
     --help|-h)
         printf 'Usage: %s [--refresh-seeds]\n' "$0"
-        printf 'By default, apply schema and seed files only once. --refresh-seeds reapplies seed files.\n'
+        printf 'The schema is safely reapplied each run; seed files run once by default.\n'
+        printf '--refresh-seeds reapplies seed files.\n'
         exit 0
         ;;
     *)
@@ -67,30 +69,11 @@ ON CONFLICT (file_name) DO NOTHING;
 SQL
 }
 
-schema_applied="$(psql --no-psqlrc --tuples-only --no-align --set=ON_ERROR_STOP=1 <<'SQL'
-SELECT EXISTS (
-    SELECT 1 FROM public.deploy_sql_files WHERE file_name = 'schema.sql'
-);
-SQL
-)"
-if [ "$schema_applied" != "t" ]; then
-    schema_table_count="$(psql --no-psqlrc --tuples-only --no-align --set=ON_ERROR_STOP=1 \
-        --command "SELECT count(*) FROM unnest(ARRAY['player', 'run', 'item', 'monster', 'gained_item', 'gained_monster']) AS expected(name) WHERE to_regclass('public.' || expected.name) IS NOT NULL")"
-    if [ "$schema_table_count" -eq 6 ]; then
-        printf 'Schema tables already exist; recording schema.sql as applied and resuming.\n'
-        mark_file_applied "schema.sql"
-    elif [ "$schema_table_count" -ne 0 ]; then
-        printf 'ERROR: database has a partial schema (%s of 6 required tables exist); refusing to rerun schema.sql over existing data.\n' "$schema_table_count" >&2
-        exit 1
-    else
-        printf 'Applying schema.sql\n'
-        psql --no-psqlrc --set=ON_ERROR_STOP=1 --single-transaction \
-            --file="${SQL_DIR}/schema.sql"
-        mark_file_applied "schema.sql"
-    fi
-else
-    printf 'schema.sql already applied; skipping.\n'
-fi
+# schema.sql uses idempotent table creation so it can add tables to existing databases.
+printf 'Applying schema.sql safely to create any missing tables.\n'
+psql --no-psqlrc --set=ON_ERROR_STOP=1 --single-transaction \
+    --file="${SQL_DIR}/schema.sql"
+mark_file_applied "schema.sql"
 
 for sql_file in "${SQL_DIR}"/*.sql; do
     [ -f "$sql_file" ] || continue
