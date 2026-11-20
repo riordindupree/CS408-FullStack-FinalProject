@@ -3,14 +3,24 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
             <a class="navbar-brand fw-bold" th:href="@{/}">99 Steps & 7 Falls ก</a>
-            <div class="navbar-nav">
+            <div class="navbar-nav align-items-lg-center">
                 <a class="nav-link fw-bold" th:href="@{/}">Home</a>
-                <a class="nav-link fw-bold" th:href="@{/start}">New Game</a>
+                <form method="post" th:action="@{/start/reset}" class="m-0">
+                    <button class="nav-link fw-bold border-0 bg-transparent" type="submit">Go To Game</button>
+                </form>
                 <a class="nav-link fw-bold" th:href="@{/map}">Map</a>
                 <a class="nav-link fw-bold" th:href="@{/leaderboard}">Leaderboard</a>
                 <a class="nav-link fw-bold" th:href="@{/delete}">Delete Account</a>
                 <a class="nav-link fw-bold" th:href="@{/guide}">Guide</a>
                 <a class="nav-link fw-bold" th:href="@{/about}">About</a>
+                <a class="btn btn-sm btn-outline-light ms-lg-2"
+                   th:if="${loggedInPlayerId == null}" th:href="@{/login}">Log In</a>
+                <div class="d-flex align-items-center gap-2 ms-lg-2" th:if="${loggedInPlayerId != null}">
+                    <span class="text-white" th:text="|Player ID: ${loggedInPlayerId}|"></span>
+                    <form method="post" th:action="@{/logout}" class="m-0">
+                        <button class="btn btn-sm btn-outline-light" type="submit">Log Out</button>
+                    </form>
+                </div>
             </div>
         </div>
     </nav>

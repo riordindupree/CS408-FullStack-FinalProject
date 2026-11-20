@@ -43,6 +43,10 @@ public class GameGrid {
     // Tracks whether the current session is showing an encounter or a victory choice.
     private boolean fighting;
     private boolean victoryPending;
+    private boolean runCompleted;
+    private boolean runWon;
+    private boolean runSaved;
+    private int completedScore;
     // The enemy action remains in its room so fleeing preserves its current state.
     private Action activeMonster;
     private int activeMonsterOption = -1;
@@ -82,6 +86,9 @@ public class GameGrid {
      * depending on the contents of the current room. 
      */
     public String roomSelection(int option){
+        if (runCompleted) {
+            return "This run has already ended.";
+        }
         String retval;
         if (gameGrid[current_floor][current_x][current_y] == null) {
             return "The current room is unavailable.";
@@ -124,7 +131,7 @@ public class GameGrid {
             }
         }
         // check if maximum number of steps has been reached
-        if (steps >= 99){
+        if (steps >= 99 && !runCompleted){
             exit(false);
         }
         return retval;
@@ -290,6 +297,10 @@ public class GameGrid {
         p_inv = new int[]{0, 0, 0, 0};
         fighting = false;
         victoryPending = false;
+        runCompleted = false;
+        runWon = false;
+        runSaved = false;
+        completedScore = 0;
         activeMonster = null;
         activeMonsterOption = -1;
         defaultFloors();
@@ -380,9 +391,11 @@ public class GameGrid {
 
     // exit function. True if success, False if ran out of steps.
     private String exit(boolean success){
-        // TODO
         int total = score + 99 - steps;
         if (!success){ total -= 10000; }
+        runCompleted = true;
+        runWon = success;
+        completedScore = total;
         return "" + total;
     }
 
@@ -429,6 +442,40 @@ public class GameGrid {
     // Tells the controller whether to render the combat screen.
     public boolean isFighting(){
         return fighting;
+    }
+
+    public boolean isRunComplete(){
+        return runCompleted;
+    }
+
+    public boolean isRunWon(){
+        return runWon;
+    }
+
+    public boolean isRunSaved(){
+        return runSaved;
+    }
+
+    public void markRunSaved(){
+        if (!runCompleted) {
+            throw new IllegalStateException("A run must be complete before it can be saved.");
+        }
+        runSaved = true;
+    }
+
+    public int getCompletedScore(){
+        if (!runCompleted) {
+            throw new IllegalStateException("The current run has not ended.");
+        }
+        return completedScore;
+    }
+
+    public int[] getInventoryIds(){
+        return p_inv.clone();
+    }
+
+    public int getCompletedStepsRemaining(){
+        return 99 - steps;
     }
 
     // Tells the template whether to show the victory actions instead of combat items.
@@ -504,6 +551,11 @@ public class GameGrid {
             activeMonster.setMonsterState(outcome.newState());
         }
         steps++;
+        if (steps >= 99) {
+            leaveFight();
+            exit(false);
+            return outcome.result() == null ? f_d : outcome.result();
+        }
 
         if (outcome.newState() != null && outcome.newState() == '$') {
             // Victory waits for the player to choose Run or Collect.

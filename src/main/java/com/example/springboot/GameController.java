@@ -7,6 +7,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.SessionAttribute;
 
 /**
  * Handles actions submitted from the game page.
@@ -15,14 +16,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class GameController {
 
     private final GameGrid gameGrid;
+    private final AccountService accountService;
     private String game_text;
 
     /**
      * Uses the current user's session-scoped game grid.
      * @param gameGrid
      */
-    public GameController(GameGrid gameGrid) {
+    public GameController(GameGrid gameGrid, AccountService accountService) {
         this.gameGrid = gameGrid;
+        this.accountService = accountService;
     }
 
     /**
@@ -31,8 +34,17 @@ public class GameController {
      * @return message telling map page to reload
      */
     @PostMapping("/start/room-selection")
-    public String roomSelection(@RequestParam int option) {
+    public String roomSelection(
+        @RequestParam int option,
+        @SessionAttribute(name = "playerId", required = false) Integer playerId) {
+        if (gameGrid.isRunComplete()) {
+            return "redirect:/run/complete";
+        }
         game_text = gameGrid.roomSelection(option);
+        if (gameGrid.isRunComplete()) {
+            saveRunForLoggedInPlayer(playerId);
+            return "redirect:/run/complete";
+        }
         // Fight actions enter the dedicated combat view rather than returning to the map.
         if (gameGrid.isFighting()) {
             return "redirect:/fight";
@@ -48,6 +60,9 @@ public class GameController {
      */
     @PostMapping("/start/toss_item")
     public String tossItem(@RequestParam int option) {
+        if (gameGrid.isRunComplete()) {
+            return "redirect:/run/complete";
+        }
         gameGrid.tossInventory(option);
         // call sends an update to the page which tells the server to reload.
         // Keep the inventory visible on the fight page when a player frees a slot there.
@@ -56,8 +71,17 @@ public class GameController {
 
     // Applies the selected inventory choice against the active monster.
     @PostMapping("/fight/option")
-    public String fightOption(@RequestParam int option) {
+    public String fightOption(
+        @RequestParam int option,
+        @SessionAttribute(name = "playerId", required = false) Integer playerId) {
+        if (gameGrid.isRunComplete()) {
+            return "redirect:/run/complete";
+        }
         game_text = gameGrid.fightSelection(option);
+        if (gameGrid.isRunComplete()) {
+            saveRunForLoggedInPlayer(playerId);
+            return "redirect:/run/complete";
+        }
         // Notify an open map tab when a completed interaction changes the room.
         return gameGrid.isFighting() ? "redirect:/fight" : "redirect:/start?moved=true";
     }
@@ -65,6 +89,9 @@ public class GameController {
     // Ends combat and returns to the same room without changing the monster's state.
     @PostMapping("/fight/run")
     public String runFromFight() {
+        if (gameGrid.isRunComplete()) {
+            return "redirect:/run/complete";
+        }
         game_text = gameGrid.runFromFight();
         // Refresh any open map tab after returning from the fight.
         return "redirect:/start?moved=true";
@@ -73,6 +100,9 @@ public class GameController {
     // Collects a defeated monster, staying in combat if the inventory has no free slot.
     @PostMapping("/fight/collect")
     public String collectMonster() {
+        if (gameGrid.isRunComplete()) {
+            return "redirect:/run/complete";
+        }
         game_text = gameGrid.collectDefeatedMonster();
         if (gameGrid.isFighting()) {
             return "redirect:/fight";
@@ -93,6 +123,9 @@ public class GameController {
     // Builds the fight board and offers inventory-based combat actions.
     @GetMapping("/fight")
     public String fight(Model model) {
+        if (gameGrid.isRunComplete()) {
+            return "redirect:/run/complete";
+        }
         if (!gameGrid.isFighting()) {
             return "redirect:/start";
         }
@@ -124,6 +157,9 @@ public class GameController {
     @GetMapping("/start")
     public String map(
         Model model) {
+        if (gameGrid.isRunComplete()) {
+            return "redirect:/run/complete";
+        }
         // Keep direct visits to /start inside combat until the player runs or collects.
         if (gameGrid.isFighting()) {
             return "redirect:/fight";
@@ -151,5 +187,17 @@ public class GameController {
         model.addAttribute("option_3", gameGrid.getGameMessage(2));
         model.addAttribute("option_4", gameGrid.getGameMessage(3));
         return "start";
+    }
+
+    private void saveRunForLoggedInPlayer(Integer playerId) {
+        if (playerId != null && !gameGrid.isRunSaved()) {
+            accountService.saveRun(
+                playerId,
+                gameGrid.getCompletedStepsRemaining(),
+                gameGrid.getCompletedScore(),
+                gameGrid.isRunWon(),
+                gameGrid.getInventoryIds());
+            gameGrid.markRunSaved();
+        }
     }
 }

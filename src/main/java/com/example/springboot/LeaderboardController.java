@@ -36,12 +36,13 @@ public class LeaderboardController {
     String playerString = searchString == null ? "" : searchString.trim();
     String playerIdPattern = "%" + playerString + "%";
 
-    // Count the rows that match the run mode, player ID search, and optional win filter.
+    // Include retained anonymous runs alongside the live player accounts.
     int totalResults = jdbcTemplate.queryForObject(
-        "SELECT COUNT(*) FROM PLAYER p "
-            + "JOIN RUN r ON r.player_id = p.player_id "
-            + "WHERE (? = FALSE OR r.run_id = p.high_score_run_id) "
-            + "AND (? = '' OR CAST(p.player_id AS VARCHAR) LIKE ?) "
+        "SELECT COUNT(*) FROM RUN r "
+            + "LEFT JOIN PLAYER p ON p.player_id = r.player_id "
+            + "WHERE (? = FALSE OR r.player_id IS NULL OR r.run_id = p.high_score_run_id) "
+            + "AND (? = '' OR (r.player_id IS NOT NULL "
+            + "AND CAST(r.player_id AS VARCHAR) LIKE ?)) "
             + "AND (? = FALSE OR r.korokorobi = TRUE)",
         Integer.class,
         hsOnly,
@@ -54,22 +55,23 @@ public class LeaderboardController {
     int currentPage = Math.max(1, Math.min(page, totalPages));
     long offset = (long) (currentPage - 1) * PAGE_SIZE;
 
-    // Select each player's saved best run, sort highest scores first, then fetch this page.
+    // Keep anonymous run history visible; live players' best runs remain the default view.
     List<LeaderboardEntry> entries = jdbcTemplate.query(
-        "SELECT p.player_id, r.score, r.steps, p.number_of_runs "
-            + "FROM PLAYER p "
-            + "JOIN RUN r ON r.player_id = p.player_id "
-            + "WHERE (? = FALSE OR r.run_id = p.high_score_run_id) "
-            + "AND (? = '' OR CAST(p.player_id AS VARCHAR) LIKE ?) "
+        "SELECT r.player_id, r.score, r.steps, p.number_of_runs "
+            + "FROM RUN r "
+            + "LEFT JOIN PLAYER p ON p.player_id = r.player_id "
+            + "WHERE (? = FALSE OR r.player_id IS NULL OR r.run_id = p.high_score_run_id) "
+            + "AND (? = '' OR (r.player_id IS NOT NULL "
+            + "AND CAST(r.player_id AS VARCHAR) LIKE ?)) "
             + "AND (? = FALSE OR r.korokorobi = TRUE)"
-            + "ORDER BY r.score DESC, p.player_id ASC "
+            + "ORDER BY r.score DESC, r.player_id ASC NULLS LAST, r.run_id ASC "
             + "LIMIT ? OFFSET ?",
         // Convert each returned database row into an object Thymeleaf can display.
         (resultSet, rowNumber) -> new LeaderboardEntry(
-            resultSet.getInt("player_id"),
+            resultSet.getObject("player_id", Integer.class),
             resultSet.getInt("score"),
             resultSet.getInt("steps"),
-            resultSet.getInt("number_of_runs")),
+            resultSet.getObject("number_of_runs", Integer.class)),
         hsOnly,
         playerString,
         playerIdPattern,
@@ -97,19 +99,23 @@ public class LeaderboardController {
 
   // A simple view model containing the values displayed for one leaderboard row.
   public static class LeaderboardEntry {
-    private final int playerId;
+    private final Integer playerId;
     private final int score;
     private final int stepsRemaining;
-    private final int numberOfRuns;
+    private final Integer numberOfRuns;
 
-    public LeaderboardEntry(int playerId, int score, int stepsRemaining, int numberOfRuns) {
+    public LeaderboardEntry(
+        Integer playerId,
+        int score,
+        int stepsRemaining,
+        Integer numberOfRuns) {
       this.playerId = playerId;
       this.score = score;
       this.stepsRemaining = stepsRemaining;
       this.numberOfRuns = numberOfRuns;
     }
 
-    public int getPlayerId() {
+    public Integer getPlayerId() {
       return playerId;
     }
 
@@ -121,7 +127,7 @@ public class LeaderboardController {
       return stepsRemaining;
     }
 
-    public int getNumberOfRuns() {
+    public Integer getNumberOfRuns() {
       return numberOfRuns;
     }
   }

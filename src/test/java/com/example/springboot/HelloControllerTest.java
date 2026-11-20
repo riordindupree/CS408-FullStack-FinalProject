@@ -36,4 +36,19 @@ public class HelloControllerTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.status", is("UP")));
   }
+
+  @Test
+  public void homePageShowsGettingStartedAndAccountOptions() throws Exception {
+    mvc.perform(get("/"))
+        .andExpect(status().isOk())
+        .andExpect(content().string(
+            org.hamcrest.Matchers.containsString("Important Info Before Getting Started")))
+        .andExpect(content().string(
+            org.hamcrest.Matchers.containsString("Embark On Your Adventure!")))
+        .andExpect(content().string(org.hamcrest.Matchers.containsString("href=\"/about\"")))
+        .andExpect(content().string(org.hamcrest.Matchers.containsString("href=\"/guide\"")))
+        .andExpect(content().string(org.hamcrest.Matchers.containsString("href=\"/map\"")))
+        .andExpect(content().string(org.hamcrest.Matchers.containsString("action=\"/start/reset\"")))
+        .andExpect(content().string(org.hamcrest.Matchers.containsString("href=\"/login\"")));
+  }
 }

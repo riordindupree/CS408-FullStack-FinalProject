@@ -34,6 +34,9 @@ public class MapController {
   public String map(
       @RequestParam(required = false) Integer floor,
       Model model) {
+    if (gameGrid.isRunComplete()) {
+      return "redirect:/run/complete";
+    }
     // Keep map navigation in combat until the player chooses to run or collect.
     if (gameGrid.isFighting()) {
       return "redirect:/fight";

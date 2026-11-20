@@ -82,6 +82,10 @@ for sql_file in "${SQL_DIR}"/*.sql; do
     [ -f "$sql_file" ] || continue
     [ "$sql_file" = "${SQL_DIR}/schema.sql" ] && continue
     file_name="$(basename "$sql_file")"
+    if [ "$file_name" = "defaut_users_for_testing.sql" ]; then
+        printf '%s is a manual test fixture and is not applied by database setup.\n' "$file_name"
+        continue
+    fi
     file_applied="$(psql --no-psqlrc --tuples-only --no-align --set=ON_ERROR_STOP=1 \
         --set=file_name="$file_name" <<'SQL'
 SELECT EXISTS (

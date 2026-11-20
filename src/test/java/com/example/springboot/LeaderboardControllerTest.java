@@ -36,7 +36,7 @@ class LeaderboardControllerTest {
         "CREATE TABLE PLAYER (player_id INTEGER PRIMARY KEY, number_of_runs INTEGER NOT NULL, "
             + "high_score_run_id INTEGER)");
     jdbcTemplate.execute(
-        "CREATE TABLE RUN (run_id INTEGER PRIMARY KEY, player_id INTEGER NOT NULL, "
+        "CREATE TABLE RUN (run_id INTEGER PRIMARY KEY, player_id INTEGER, "
             + "steps INTEGER NOT NULL, score INTEGER NOT NULL, korokorobi BOOLEAN)");
 
     // Create 27 players with one best run each, enough to require a second page.
@@ -132,5 +132,23 @@ class LeaderboardControllerTest {
         .andExpect(content().string(containsString(">12345</td>")))
         .andExpect(content().string(containsString(">23456</td>")))
         .andExpect(content().string(containsString("value=\"234\"")));
+  }
+
+  @Test
+  void includesAnonymousRunHistoryInLeaderboard() throws Exception {
+    jdbcTemplate.update(
+        "INSERT INTO RUN (run_id, player_id, steps, score, korokorobi) "
+            + "VALUES (100, NULL, 40, 2000, TRUE)");
+
+    mvc.perform(get("/leaderboard"))
+        .andExpect(status().isOk())
+        .andExpect(content().string(containsString("Deleted Account")))
+        .andExpect(content().string(containsString(">2000</td>")));
+
+    mvc.perform(get("/leaderboard")
+        .param("highscoreOnly", "false")
+        .param("hasWon", "false"))
+        .andExpect(status().isOk())
+        .andExpect(content().string(containsString("Showing 25 of 29 results")));
   }
 }

@@ -143,6 +143,29 @@ class GameGridCombatTest {
         assertEquals("⌧", grid.getCurrentData(0));
     }
 
+    @Test
+    void startNewGameActionResetsTheCurrentRun() throws Exception {
+        MvcResult startResult = mvc.perform(get("/start"))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("Steps: <span>99</span>")))
+            .andReturn();
+        MockHttpSession session = (MockHttpSession) startResult.getRequest().getSession(false);
+
+        mvc.perform(post("/start/room-selection")
+            .session(session)
+            .param("option", "2"))
+            .andExpect(status().is3xxRedirection());
+        mvc.perform(get("/start").session(session))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("Steps: <span>98</span>")));
+
+        mvc.perform(post("/start/reset").session(session))
+            .andExpect(status().is3xxRedirection());
+        mvc.perform(get("/start").session(session))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("Steps: <span>99</span>")));
+    }
+
     // Verify that inventory shows only the first line of multi-line monster art.
     @Test
     void inventoryAndFightButtonsTruncateMultiLineMonsterIconsOnly() throws Exception {

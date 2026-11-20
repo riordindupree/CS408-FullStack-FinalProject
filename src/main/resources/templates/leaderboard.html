@@ -52,10 +52,10 @@
                 </thead>
                 <tbody>
                     <tr th:each="entry : ${entries}">
-                        <td th:text="${entry.playerId}"></td>
+                        <td th:text="${entry.playerId == null ? 'Deleted Account' : entry.playerId}"></td>
                         <td th:text="${entry.score}"></td>
                         <td th:text="${entry.stepsRemaining}"></td>
-                        <td th:text="${entry.numberOfRuns}"></td>
+                        <td th:text="${entry.numberOfRuns == null ? '--' : entry.numberOfRuns}"></td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(entries)}">
                         <td colspan="4">No leaderboard results yet.</td>
