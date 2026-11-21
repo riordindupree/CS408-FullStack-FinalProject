@@ -49,6 +49,8 @@ public class HelloControllerTest {
         .andExpect(content().string(org.hamcrest.Matchers.containsString("href=\"/guide\"")))
         .andExpect(content().string(org.hamcrest.Matchers.containsString("href=\"/map\"")))
         .andExpect(content().string(org.hamcrest.Matchers.containsString("action=\"/start/reset\"")))
-        .andExpect(content().string(org.hamcrest.Matchers.containsString("href=\"/login\"")));
+        .andExpect(content().string(org.hamcrest.Matchers.containsString("href=\"/login\"")))
+        .andExpect(content().string(org.hamcrest.Matchers.containsString("href=\"/account/create\"")))
+        .andExpect(content().string(org.hamcrest.Matchers.containsString("w-100 py-3 fs-5")));
   }
 }

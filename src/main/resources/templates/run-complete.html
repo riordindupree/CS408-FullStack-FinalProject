@@ -21,11 +21,14 @@
                     <div th:if="${saved}" class="alert alert-success rounded-0" role="status">
                         This run has been saved to your account.
                     </div>
-                    <div th:if="${playerId != null}" class="alert alert-success rounded-0" role="status">
-                        Your new Player ID is <strong th:text="${playerId}"></strong>. Keep it to log in later.
+                    <div th:if="${reservedAccountId != null}"
+                         class="alert alert-success rounded-0" role="status">
+                        Your Account ID will be: <strong th:text="${reservedAccountId}"></strong>.
+                        Keep this ID to log in after creating your account.
                     </div>
                     <div th:if="${passwordError}" class="alert alert-danger rounded-0" role="alert">
-                        Choose a password with at least 8 characters.
+                        Passwords must be at least 8 characters and include an uppercase letter,
+                        a lowercase letter, a number, and a special character.
                     </div>
 
                     <div th:if="${!saved and loggedInPlayerId == null and !create}" class="mb-4">
@@ -49,7 +52,14 @@
                         <form method="post" th:action="@{/account/create}">
                             <label for="password" class="form-label">Password</label>
                             <input id="password" name="password" type="password"
-                                class="form-control rounded-0 mb-3" minlength="8" required>
+                                class="form-control rounded-0 mb-2" minlength="8"
+                                pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{8,}"
+                                title="At least 8 characters, including uppercase and lowercase letters, a number, and a special character."
+                                aria-describedby="passwordRequirements" required>
+                            <small id="passwordRequirements" class="form-text d-block mb-3">
+                                Use at least 8 characters, including uppercase and lowercase letters,
+                                a number, and a special character.
+                            </small>
                             <button type="submit" class="btn btn-link link-dark text-decoration-none">
                                 [ Create Account &amp; Save Run ]
                             </button>

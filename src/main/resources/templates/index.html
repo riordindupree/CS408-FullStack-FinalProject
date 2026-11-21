@@ -29,39 +29,33 @@
                     dungeon, they can keep whatever items they were carrying, and take them into the next run.
                 </span>
             </p>
+            <!--/* Decoration */-->
+            <table class="table table-bordered border-dark map-info decoration-table text-center mb-0">
+                <tbody>
+                    <tr>
+                        <td></td>
+                        <td class="rounded-0">
+                            <p>    (｡෴｡)    </p>
+                            <p>    (｡෴｡)    </p>
+                            <p>(ᄋ)(｡෴｡)(ᄋ)</p>
+                        </td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td class="rounded-0">
+                            <p>૮(´ ཀ `)ა</p>  
+                        </td>
+                        <td class="rounded-0">
+                            <p>ก</p>  
+                        </td>
+                        <td class="rounded-0">
+                            <p>⊃ভ了</p>
+                            <p> ⋂  </p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </section>
-
-        <!--/* Decoration */-->
-        <table class="table table-bordered border-dark map-info text-center bottom mb-0" aria-label="Items">
-            <tbody>
-                <tr>
-                    <td class="rounded-0">
-                            (｡෴｡)
-                            (｡෴｡)
-                        (ᄋ)(｡෴｡)(ᄋ)
-                    </td>
-                    <td class="rounded-0">
-                        ᘛ⁐̤ᕐᐷ 
-                    </td>
-                    <td class="rounded-0">
-                        ☁︎੬ཐི༏ཋྀ3  
-                    </td>
-                    <td class="rounded-0">
-                        <!--/* Empty */-->
-                    </td>
-                    <td class="rounded-0">
-                        ก  
-                    </td>
-                    <td class="rounded-0">
-                        ᕐ⚗︎   
-                    </td>
-                    <td class="rounded-0">
-                        ⊃ভ了
-                         ⋂
-                    </td>
-                </tr>
-            </tbody>
-        </table>
 
         <!--/* Links */-->
         <section class="py-4">
@@ -70,20 +64,42 @@
                 Before starting this game, it is recommended that you first get your bearings on what this game will be like.
                 The following pages are good resources to understand what playing this game is going to be like.
             </p>
-            <div class="d-flex flex-wrap gap-2">
-                <a class="btn btn-outline-dark rounded-0" th:href="@{/about}">About</a>
-                <a class="btn btn-outline-dark rounded-0" th:href="@{/guide}">Guide</a>
-                <a class="btn btn-outline-dark rounded-0" th:href="@{/map}">Map</a>
+            <div class="row g-2">
+                <div class="col-12 col-md-4">
+                    <a class="btn btn-outline-dark rounded-0 w-100 py-3 fs-5"
+                       th:href="@{/about}">About</a>
+                </div>
+                <div class="col-12 col-md-4">
+                    <a class="btn btn-outline-dark rounded-0 w-100 py-3 fs-5"
+                       th:href="@{/guide}">Guide</a>
+                </div>
+                <div class="col-12 col-md-4">
+                    <a class="btn btn-outline-dark rounded-0 w-100 py-3 fs-5"
+                       th:href="@{/map}">Map</a>
+                </div>
             </div>
         </section>
 
         <section class="py-4">
             <h3 class="h4">Embark On Your Adventure!</h3>
-            <div class="d-flex flex-wrap gap-3">
-                <form method="post" th:action="@{/start/reset}">
-                    <button class="btn btn-dark rounded-0" type="submit">Start a New Game</button>
-                </form>
-                <a class="btn btn-outline-dark rounded-0" th:href="@{/login}">Log In</a>
+            <div class="row g-2">
+                <div class="col-12">
+                    <form method="post" th:action="@{/start/reset}">
+                        <button class="btn btn-dark rounded-0 w-100 py-3 fs-5" type="submit">
+                            Start a New Game
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <div class="row g-2 mt-0">
+                <div class="col-12 col-md-6">
+                    <a class="btn btn-outline-dark rounded-0 w-100 py-3 fs-5"
+                       th:href="@{/login}">Log In</a>
+                </div>
+                <div class="col-12 col-md-6">
+                    <a class="btn btn-outline-dark rounded-0 w-100 py-3 fs-5"
+                       th:href="@{/account/create}">Create Account</a>
+                </div>
             </div>
         </section>
     </main>

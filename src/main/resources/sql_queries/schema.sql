@@ -8,6 +8,14 @@ CREATE TABLE IF NOT EXISTS PLAYER (
     high_score_run_id INTEGER UNIQUE
 );
 
+CREATE TABLE IF NOT EXISTS ACCOUNT_RESERVATION (
+    player_id INTEGER PRIMARY KEY,
+    reservation_token VARCHAR(36) NOT NULL UNIQUE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_account_reservation_player
+        FOREIGN KEY (player_id) REFERENCES PLAYER(player_id) ON DELETE CASCADE
+);
+
 -- run table
 -- IF NOT EXISTS lets setup create newly added tables in databases initialized earlier.
 CREATE TABLE IF NOT EXISTS RUN (

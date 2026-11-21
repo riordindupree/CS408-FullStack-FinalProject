@@ -144,6 +144,25 @@ class GameGridCombatTest {
     }
 
     @Test
+    void onlyRunsWithCollectedKorokorobiAreRecordedAsWins() throws Exception {
+        GameGrid runWithoutKorokorobi = createGridWithInventory(new int[]{1, 0, 0, 0});
+        setCoordinatesAtFirstFloorExit(runWithoutKorokorobi);
+
+        runWithoutKorokorobi.roomSelection(3);
+
+        assertTrue(runWithoutKorokorobi.isRunComplete());
+        assertFalse(runWithoutKorokorobi.isRunWon());
+
+        GameGrid runWithKorokorobi = createGridWithInventory(new int[]{1, -7, 0, 0});
+        setCoordinatesAtFirstFloorExit(runWithKorokorobi);
+
+        runWithKorokorobi.roomSelection(3);
+
+        assertTrue(runWithKorokorobi.isRunComplete());
+        assertTrue(runWithKorokorobi.isRunWon());
+    }
+
+    @Test
     void startNewGameActionResetsTheCurrentRun() throws Exception {
         MvcResult startResult = mvc.perform(get("/start"))
             .andExpect(status().isOk())
@@ -280,5 +299,17 @@ class GameGridCombatTest {
         inventoryField.setAccessible(true);
         inventoryField.set(grid, inventory);
         return grid;
+    }
+
+    private void setCoordinatesAtFirstFloorExit(GameGrid grid) throws Exception {
+        setIntegerField(grid, "current_floor", 0);
+        setIntegerField(grid, "current_x", 2);
+        setIntegerField(grid, "current_y", 2);
+    }
+
+    private void setIntegerField(GameGrid grid, String fieldName, int value) throws Exception {
+        Field field = GameGrid.class.getDeclaredField(fieldName);
+        field.setAccessible(true);
+        field.setInt(grid, value);
     }
 }

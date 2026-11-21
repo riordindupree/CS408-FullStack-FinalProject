@@ -390,13 +390,23 @@ public class GameGrid {
     }
 
     // exit function. True if success, False if ran out of steps.
-    private String exit(boolean success){
+    private String exit(boolean successfulExit){
         int total = score + 99 - steps;
-        if (!success){ total -= 10000; }
+        runWon = hasCollectedKorokorobi();
+        if (!successfulExit){ total -= 10000; }
         runCompleted = true;
-        runWon = success;
         completedScore = total;
         return "" + total;
+    }
+
+    // Checks to see if the player has Korokorobi in their inventory at the end of their run.
+    private boolean hasCollectedKorokorobi(){
+        for (int inventoryId : p_inv) {
+            if (inventoryId == -7) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // item function. Adds item to inventory, increments score, and increases step count on succes.

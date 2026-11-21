@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS ACCOUNT_RESERVATION (
+    player_id INTEGER PRIMARY KEY,
+    reservation_token VARCHAR(36) NOT NULL UNIQUE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_account_reservation_player
+        FOREIGN KEY (player_id) REFERENCES PLAYER(player_id) ON DELETE CASCADE
+);

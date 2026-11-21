@@ -5,6 +5,25 @@
     background-color: #f5f0e4;
 }
 
+.decoration-table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+.decoration-table td {
+    height: 8rem;
+    vertical-align: bottom;
+    overflow: hidden;
+}
+
+.decoration-table p {
+    margin-bottom: 0;
+}
+
+.decoration-table p + p {
+    margin-top: 0.25rem;
+}
+
 .dark-map {
     --bs-table-bg: #d2cec5;
     --bs-table-striped-bg: #d2cec5;

@@ -12,7 +12,12 @@
     <div class="container py-5">
         <div class="alert alert-danger">
             <h4 class="alert-heading">Canvas Error</h4>
-            <p th:text="${errorMessage}">Something went wrong.</p>
+            <p th:if="${status != null}">
+                HTTP <strong th:text="${status}"></strong>
+                <span th:if="${error != null}" th:text="| - ${error}|"></span>
+            </p>
+            <p th:if="${path != null}" th:text="|Request: ${path}|"></p>
+            <p th:if="${status == null}">Something went wrong. Check the application console for details.</p>
         </div>
     </div>
 
