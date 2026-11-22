@@ -10,7 +10,8 @@
 # What it does:
 #   1. rsync the project to /opt/99-steps-and-7-falls on the server
 #   2. run tests and build the Spring Boot artifact locally
-#   3. install the systemd service definition and restart the service
+#   3. refresh database seed data, then install the systemd service definition
+#      and restart the service
 #
 # Options:
 #   -h HOST   public IP, DNS name, or USER@HOST       (required)
@@ -85,12 +86,13 @@ rsync -az --delete \
     -e "ssh ${SSH_OPTS[*]}" \
     ./ "${TARGET}:${REMOTE_DIR}/"
 
-echo "==> Building release artifact and restarting the service"
+echo "==> Refreshing database seed data, building release artifact, and restarting the service"
 # 'ssh host command' runs one command remotely and comes straight back.
 # Maven builds the JAR on the server and the systemd unit starts it from there.
 ssh "${SSH_OPTS[@]}" "$TARGET" "
     set -e
     cd '${REMOTE_DIR}'
+    sudo bash -c 'set -a; . /etc/${SERVICE}/database.env; set +a; cd \"\$1\"; /bin/bash deploy/init-database.sh --refresh-seeds' _ '${REMOTE_DIR}'
     sudo install -m 644 deploy/game-app.service /etc/systemd/system/${SERVICE}.service
     sudo systemctl daemon-reload
     sudo systemctl restart ${SERVICE}

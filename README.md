@@ -55,6 +55,8 @@ At the end of a run, players can create an account to save that run, including i
 
 The leaderboard reads saved runs from the application database, including run history retained anonymously after an account is deleted.
 
+The EC2 deployment script refreshes the database seed data from the deployed SQL files before restarting the application, so changes to monster and item values are applied during deployment.
+
 ## Project Description
 
 The project is a browser-based dungeon game with playable runs, a leaderboard, and persistent player accounts. The pages use Bootstrap styling, with game and account data stored in PostgreSQL.
