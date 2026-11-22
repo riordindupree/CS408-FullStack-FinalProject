@@ -888,7 +888,7 @@ class Action {
         // locked door 2
         if (action == '2'){ return "⮹"; }
         // unimplemented character
-        return "𐙚";
+        return "⍰";
     }
 
     // returns the icon of a given Action
@@ -915,7 +915,7 @@ class Action {
         // locked doors
         if (action == '1' || action == '2'){ return "UNLOCK"; }
         // unimplemented character
-        return "𐙚";
+        return "⍰";
     }
 
     // return char representing action type

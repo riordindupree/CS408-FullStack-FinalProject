@@ -34,3 +34,7 @@
 .multiline {
     white-space: pre-line;
 }
+
+.multiline-nowrap {
+    white-space: pre;
+}

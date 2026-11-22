@@ -69,7 +69,7 @@
                         </tr>
                         <tr>
                             <td>Items</td>
-                            <td class="fs-4">𐙚</td>
+                            <td class="fs-4">⍰</td>
                             <td>Represents an item on the map. On the game screen, the actual item icon will display instead.</td>
                         </tr>
                         <tr>
@@ -119,7 +119,7 @@
                     <tbody>
                         <tr th:each="monster : ${monsters}">
                             <td th:text="${monster.name}"></td>
-                            <td class="fs-4 multiline" th:text="${monster.icon}"></td>
+                            <td class="fs-4 multiline-nowrap" th:text="${monster.icon}"></td>
                             <td th:text="${monster.description}"></td>
                         </tr>
                     </tbody>

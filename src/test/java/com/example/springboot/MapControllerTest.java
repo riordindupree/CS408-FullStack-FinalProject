@@ -43,7 +43,7 @@ class MapControllerTest {
     mvc.perform(get("/map").param("floor", "1"))
         .andExpect(status().isOk())
         .andExpect(content().string(containsString("Floor 1")))
-        .andExpect(content().string(containsString("𐙚")))
+        .andExpect(content().string(containsString("⍰")))
         .andExpect(content().string(not(containsString("item-icon-1"))))
         .andExpect(content().string(not(containsString("item-icon-2"))))
         .andExpect(content().string(not(containsString("item-icon-3"))));
